@@ -9,7 +9,13 @@ def run_command(command, arguments, answers):
     :param answers: A dictionary of prompts and their corresponding answers.
     :return: The return code of the process.
     """
-    process = subprocess.Popen([command] + arguments, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, bufsize=1)
+
+    if arguments == ['']:
+        cmdlist = command
+    else:
+        cmdlist = [command] + arguments
+
+    process = subprocess.Popen(cmdlist, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, bufsize=1)
 
     current_line = ""
     while True:
@@ -22,6 +28,7 @@ def run_command(command, arguments, answers):
 
         for question, answer in answers.items():
             if question in current_line:
+                print(' ' + answer + '\n')
                 process.stdin.write(answer + '\n')
                 process.stdin.flush()
                 current_line = ""
@@ -30,14 +37,6 @@ def run_command(command, arguments, answers):
     rc = process.poll()
 
     return rc
-
-# Example usage
-command = "perl"  # The Perl interpreter
-arguments = ["your_perl_script.pl"]  # The Perl script to run
-answers = {"Enter selection [1-10] : ": "5"}  # The expected prompt and answer
-
-run_command(command, arguments, answers)
-
 
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
@@ -62,12 +61,11 @@ def compile(build):
     :return: The return code of the compile process.
     """
     command = './compile'
-    arguments = [build, '>&', 'compile.log']
-    answers = {'Compile for nesting?': '1'}
+    arguments = [build]
 
-    return run_command(command, arguments, answers)
+    return run_command(command, arguments, {})
 
-def build_wrf(configure_opt="-d", option_number="1", build="em_real"):
+def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire"):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
     :param configure_opt: The configuration options to be passed to the ./configure script.
@@ -75,16 +73,20 @@ def build_wrf(configure_opt="-d", option_number="1", build="em_real"):
     :param build: The build string to be passed to the ./compile script.
     :return: None.
     """
-    configure_log = configure(configure_opt, option_number)
+    configure_log = configure(configure_opt=configure_opt, option_number=option_number, nesting=nesting)
     
     # Check if the configure.wrf file exists after running configure
     if configure_log != 0 or not os.path.exists('configure.wrf'):
         print("Error in configuration. Exiting...")
         return
 
+    if build is None:
+        print("Build not requested. Exiting...")
+        return
+
     compile_log = compile(build)
     if compile_log != 0:
-        print("Error in compilation. Exiting...")
+        print("Error in compile. Exiting...")
         return
 
     with open('compile.log', 'r') as f:
@@ -97,9 +99,7 @@ def build_wrf(configure_opt="-d", option_number="1", build="em_real"):
 
 # __main__ entry point for testing
 if __name__ == "__main__":
-    print("Testing the run_command function...")
-    run_command('ls', ['-l'], {})
     
     print("\nTesting the build_wrf function...")
-    build_wrf(option_number=34)
+    build_wrf(option_number="34")
 
