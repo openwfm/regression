@@ -7,26 +7,37 @@ def run_command(command, arguments, answers):
     :param command: The command to be executed.
     :param arguments: The arguments to be passed to the command.
     :param answers: A dictionary of prompts and their corresponding answers.
-    :return: The return code of the process. 
+    :return: The return code of the process.
     """
-    process = subprocess.Popen([command] + arguments, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
+    process = subprocess.Popen([command] + arguments, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, bufsize=1)
 
+    current_line = ""
     while True:
-        output = process.stdout.readline()
-        print(output, end='')  # Output to console
+        output_char = process.stdout.read(1)
+        print(output_char, end='', flush=True)  # Output to console
+        current_line += output_char
 
-        if output == '' and process.poll() is not None:
+        if output_char == '' and process.poll() is not None:
             break
 
         for question, answer in answers.items():
-            if question in output:
+            if question in current_line:
                 process.stdin.write(answer + '\n')
                 process.stdin.flush()
+                current_line = ""
                 break
 
     rc = process.poll()
 
     return rc
+
+# Example usage
+command = "perl"  # The Perl interpreter
+arguments = ["your_perl_script.pl"]  # The Perl script to run
+answers = {"Enter selection [1-10] : ": "5"}  # The expected prompt and answer
+
+run_command(command, arguments, answers)
+
 
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
