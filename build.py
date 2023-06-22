@@ -28,7 +28,7 @@ def run_command(command, arguments, answers):
 
     return rc
 
-def configure(configure_opt="-d", option_number="1"):
+def configure(configure_opt="", option_number="34", nesting="1"):
     """
     This function runs the configuration part of the WRF build process.
     :param configure_opt: The configuration options to be passed to the ./configure script.
@@ -40,7 +40,7 @@ def configure(configure_opt="-d", option_number="1"):
     
     command = './configure'
     arguments = [configure_opt]
-    answers = {'Enter selection [anything] : ': option_number}
+    answers = {'Enter selection': option_number,'Compile for nesting':nesting}
     
     return run_command(command, arguments, answers)
 
@@ -90,5 +90,5 @@ if __name__ == "__main__":
     run_command('ls', ['-l'], {})
     
     print("\nTesting the build_wrf function...")
-    build_wrf()
+    build_wrf(option_number=34)
 
