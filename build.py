@@ -22,13 +22,16 @@ def run_command(command, arguments, answers, **kwargs):
 
     process = subprocess.Popen(cmdlist, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, bufsize=1)
 
+    process_output = ""
     current_line = ""
     while True:
         output_char = process.stdout.read(1)
         print(output_char, end='', flush=True)  # Output to console
         current_line += output_char
+        process_output += output_char
+        rc = process.poll()
 
-        if output_char == '' and process.poll() is not None:
+        if output_char == '' and rc is not None:
             break
 
         for question, answer in answers.items():
@@ -39,9 +42,7 @@ def run_command(command, arguments, answers, **kwargs):
                 current_line = ""
                 break
 
-    rc = process.poll()
-
-    return rc
+    return {'code': rc, 'output': process_output}
 
 def clone(git_url="", clone_dir="", **kwargs):
     """
@@ -54,17 +55,19 @@ def clone(git_url="", clone_dir="", **kwargs):
     if osp.exists(clone_dir):
         shutil.rmtree(clone_dir)
     # Run git clone
-    return run_command('git',['clone', git_url, clone_dir], {})
+    arguments = ['clone', git_url, clone_dir]
+    print('cloning: ', arguments)
+    return run_command('git',arguments, {})
 
-def checkout(branch="", **kwargs):
+def checkout(commit="", **kwargs):
     """
     This function checks out git branch.
-    :param branch: branch to checkout.
+    :param commit: branch or commit to checkout.
     :param clone_dir: directory name of the clone.
     :return: The return code of the clone process.
     """
     # Run git checkout
-    return run_command('git',['checkout', branch], {})
+    return run_command('git',['checkout', commit], {})
 
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
@@ -93,11 +96,11 @@ def compile(build):
 
     run_command(command, arguments, {})
 
-def build_wrf(branch="", configure_opt="", option_number="1", nesting="1", 
+def build_wrf(commit, configure_opt="", option_number="1", nesting="1", 
               build="em_fire", clone_dir="", **kwargs):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
-    :param branch: The branch to checkout before building the code.
+    :param commit: The branch or commit to checkout before building the code.
     :param configure_opt: The configuration options to be passed to the ./configure script.
     :param option_number: The option to be selected when the configure script prompts for selection.
     :param build: The build string to be passed to the ./compile script.
@@ -107,30 +110,31 @@ def build_wrf(branch="", configure_opt="", option_number="1", nesting="1",
 
     print('Building in ' + clone_dir)
     os.chdir(clone_dir)
+    
+    # checking out commit
+    checkout(commit)
 
-    checkout(branch=branch)
-
-    configure_log = configure(configure_opt=configure_opt,
+    configure_return = configure(configure_opt=configure_opt,
                               option_number=option_number,
                               nesting=nesting)
-    
     # Check if the configure.wrf file exists after running configure
-    if configure_log != 0 or not os.path.exists('configure.wrf'):
+    if configure_return['code'] != 0 or not os.path.exists('configure.wrf'):
         print("Error in configuration. Exiting...")
         return
 
     if build is None:
         print("Build not requested. Exiting...")
         return 1
+    
+    compile_return = compile(build)
 
-    if compile(build):
+    if compile_return['code'] != 0:
         print("Error in compile. Exiting...")
         return 1
 
-    with open('compile.log', 'r') as f:
-        lines = f.readlines()
+    compile_out = compile_return['output']
 
-    if 'Executables successfully built' not in lines[-1]:
+    if 'Executables successfully built' not in compile_out[-1]:
         print("Build was not successful.")
         return 1
     else:
