@@ -12,18 +12,18 @@
                     {
                         "info": "Rothermel", 
                         "namelist_fire_params": {
-                            "ibeh": 1,
+                            "ibeh": 1
                         },
                         "namelist_input_params": {},
-                        "input_files": {},
+                        "input_files": {}
                     },
                     {
                         "info": "Balbi", 
                         "namelist_fire_params": {
-                            "ibeh": 2,
+                            "ibeh": 2
                         },
                         "namelist_input_params": {},
-                        "input_files": {},
+                        "input_files": {}
                     },
                 ]
         }

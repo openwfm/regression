@@ -41,6 +41,15 @@ def run_command(command, arguments, answers):
 
     return rc
 
+def clone(git_url=""):
+    """
+    This function clones WRF repository.
+    :param git_url: 
+    :return: The return code of the clone process.
+    """
+    # Run git clone
+    return run_command('git clone', [git_url], {})
+
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
     This function runs the configuration part of the WRF build process.
