@@ -3,11 +3,11 @@
     "clone_dir": "wrf-sfire-local",
     "commit_ref": "master",
     "commit_dev": "develop-61",
-    "config_options": 34,
+    "option_number": 34,
     "config_optim": "",
     "test_cases": {
         "hill": {
-            "path": "tests/em_sfire/flat",
+            "path": "test/em_sfire/flat",
             "n_cpu": [1, 64],
             "configs":
                 [
