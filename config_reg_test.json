@@ -1,0 +1,33 @@
+{
+    "git_url": "https://github.com/openwfm/WRF-SFIRE",
+    "clone_dir": "wrf-sfire-local",
+    "commit_ref": "master",
+    "commit_dev": "develop-61",
+    "config_options": 34,
+    "config_optim": "",
+    "test_cases": {
+        "hill": {
+            "path": "tests/em_sfire/flat",
+            "n_cpu": [1, 64],
+            "configs":
+                [
+                    {
+                        "info": "Rothermel", 
+                        "namelist_fire_params": {
+                            "ibeh": 1
+                        },
+                        "namelist_input_params": {},
+                        "input_files": {}
+                    },
+                    {
+                        "info": "Balbi", 
+                        "namelist_fire_params": {
+                            "ibeh": 2
+                        },
+                        "namelist_input_params": {},
+                        "input_files": {}
+                    }
+                ]
+        }
+    }
+}
