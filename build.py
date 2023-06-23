@@ -2,6 +2,7 @@
 # Parts of this code are based on code provided by ChatGPT by OpenAI.
 
 import subprocess
+import shutil
 import os
 import os.path as osp
 
@@ -42,15 +43,28 @@ def run_command(command, arguments, answers, **kwargs):
 
     return rc
 
-def clone(git_url="",clone_dir="",**kwargs):
+def clone(git_url="", clone_dir="", **kwargs):
     """
     This function clones a git repository.
     :param git_url: url of the repository
     :param clone dir: directory name of the clone
     :return: The return code of the clone process.
     """
+    # Clean clone directory
+    if osp.exists(clone_dir):
+        shutil.rmtree(clone_dir)
     # Run git clone
     return run_command('git',['clone', git_url, clone_dir], {})
+
+def checkout(branch="", **kwargs):
+    """
+    This function checks out git branch.
+    :param branch: branch to checkout.
+    :param clone_dir: directory name of the clone.
+    :return: The return code of the clone process.
+    """
+    # Run git checkout
+    return run_command('git',['checkout', branch], {})
 
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
@@ -79,18 +93,22 @@ def compile(build):
 
     run_command(command, arguments, {})
 
-def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire", 
-              clone_dir="", **kwargs):
+def build_wrf(branch="", configure_opt="", option_number="1", nesting="1", 
+              build="em_fire", clone_dir="", **kwargs):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
+    :param branch: The branch to checkout before building the code.
     :param configure_opt: The configuration options to be passed to the ./configure script.
     :param option_number: The option to be selected when the configure script prompts for selection.
     :param build: The build string to be passed to the ./compile script.
+    :param clone_dir: directory to the clone.
     :return: None.
     """
 
     print('Building in ' + clone_dir)
     os.chdir(clone_dir)
+
+    checkout(branch=branch)
 
     configure_log = configure(configure_opt=configure_opt,
                               option_number=option_number,
@@ -118,10 +136,18 @@ def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire",
     else:
         print("Build was successful.")
 
-
 def run_local(clone_dir, n_proc="1", dmpar=True, **kwargs):
     print('not done yet')
 
+def run_wrf_sub(clone_dir, n_proc="1", dmpar=True, **kwargs):
+    """
+    This function runs WRF case.
+    :param clone_dir: The configuration options to be passed to the ./configure script.
+    :param option_number: The option to be selected when the configure script prompts for selection.
+    :param build: The build string to be passed to the ./compile script.
+    :return: None.
+    """
+    print('not done yet')
 
 # __main__ entry point for testing
 if __name__ == "__main__":
@@ -129,11 +155,12 @@ if __name__ == "__main__":
     conf = {
             "git_url" : "https://github.com/openwfm/WRF-SFIRE",
             "clone_dir" : "wrf-sfire-local",
-            "commit" : "master",
+            "commit" : "develop-61",
             "configure_opt" : "-d",
             "option_number" : "34",
             "nesting" : "1",
-            "build" : "em_fire"
+            "build" : "em_fire",
+            "qsub": "/tmp/aws_mpi.sub"
             } 
 
     conf['clone_dir'] = osp.abspath(conf['clone_dir']) 
