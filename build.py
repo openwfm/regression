@@ -94,7 +94,7 @@ def compile(build):
     command = './compile'
     arguments = [build]
 
-    run_command(command, arguments, {})
+    return run_command(command, arguments, {})
 
 def build_wrf(commit, configure_opt="", option_number="1", nesting="1", 
               build="em_fire", clone_dir="", **kwargs):
@@ -110,7 +110,7 @@ def build_wrf(commit, configure_opt="", option_number="1", nesting="1",
 
     print('Building in ' + clone_dir)
     os.chdir(clone_dir)
-    
+
     # checking out commit
     checkout(commit)
 
