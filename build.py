@@ -3,6 +3,7 @@
 
 import subprocess
 import os
+import os.path as osp
 
 def run_command(command, arguments, answers, **kwargs):
     """
@@ -76,9 +77,10 @@ def compile(build):
     command = './compile'
     arguments = [build]
 
-    return run_command(command, arguments, {})
+    run_command(command, arguments, {})
 
-def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire", **kwargs):
+def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire", 
+              clone_dir="", **kwargs):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
     :param configure_opt: The configuration options to be passed to the ./configure script.
@@ -86,7 +88,13 @@ def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire",
     :param build: The build string to be passed to the ./compile script.
     :return: None.
     """
-    configure_log = configure(configure_opt=configure_opt, option_number=option_number, nesting=nesting)
+
+    print('Building in ' + clone_dir)
+    os.chdir(clone_dir)
+
+    configure_log = configure(configure_opt=configure_opt,
+                              option_number=option_number,
+                              nesting=nesting)
     
     # Check if the configure.wrf file exists after running configure
     if configure_log != 0 or not os.path.exists('configure.wrf'):
@@ -95,20 +103,25 @@ def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire",
 
     if build is None:
         print("Build not requested. Exiting...")
-        return
+        return 1
 
-    compile_log = compile(build)
-    if compile_log != 0:
+    if compile(build):
         print("Error in compile. Exiting...")
-        return
+        return 1
 
     with open('compile.log', 'r') as f:
         lines = f.readlines()
 
     if 'Executables successfully built' not in lines[-1]:
         print("Build was not successful.")
+        return 1
     else:
         print("Build was successful.")
+
+
+def run_local(clone_dir, n_proc="1", dmpar=True, **kwargs):
+    print('not done yet')
+
 
 # __main__ entry point for testing
 if __name__ == "__main__":
@@ -123,6 +136,7 @@ if __name__ == "__main__":
             "build" : "em_fire"
             } 
 
+    conf['clone_dir'] = osp.abspath(conf['clone_dir']) 
+
     clone(**conf) 
-    os.chdir(conf['clone_dir'])
     build_wrf(**conf)
