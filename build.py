@@ -4,7 +4,7 @@
 import subprocess
 import os
 
-def run_command(command, arguments, answers):
+def run_command(command, arguments, answers, **kwargs):
     """
     This function runs a command with arguments and interactive answers.
     :param command: The command to be executed.
@@ -41,14 +41,15 @@ def run_command(command, arguments, answers):
 
     return rc
 
-def clone(git_url=""):
+def clone(git_url="",clone_dir="",**kwargs):
     """
-    This function clones WRF repository.
-    :param git_url: 
+    This function clones a git repository.
+    :param git_url: url of the repository
+    :param clone dir: directory name of the clone
     :return: The return code of the clone process.
     """
     # Run git clone
-    return run_command('git clone', [git_url], {})
+    return run_command('git',['clone', git_url, clone_dir], {})
 
 def configure(configure_opt="", option_number="34", nesting="1"):
     """
@@ -77,7 +78,7 @@ def compile(build):
 
     return run_command(command, arguments, {})
 
-def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire"):
+def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire", **kwargs):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
     :param configure_opt: The configuration options to be passed to the ./configure script.
@@ -111,7 +112,17 @@ def build_wrf(configure_opt="", option_number="1", nesting="1", build="em_fire")
 
 # __main__ entry point for testing
 if __name__ == "__main__":
-    
-    print("\nTesting the build_wrf function...")
-    build_wrf(option_number="34")
 
+    conf = {
+            "git_url" : "https://github.com/openwfm/WRF-SFIRE",
+            "clone_dir" : "wrf-sfire-local",
+            "commit" : "master",
+            "configure_opt" : "-d",
+            "option_number" : "34",
+            "nesting" : "1",
+            "build" : "em_fire"
+            } 
+
+    clone(**conf) 
+    os.chdir(conf['clone_dir'])
+    build_wrf(**conf)
