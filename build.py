@@ -190,19 +190,17 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
         nml_path = osp.join(run_path, 'namelist.input')
         logging.debug('adding options to namelist input {}'.format(nml_path))
         nml_info = f90nml.read(nml_path) 
-        for k,v in namelist_input_params.items():
-            for s,d in nml_info.items():
-                if k in d.keys():
-                    nml_info[s][k] = v
+        for s,d in namelist_input_params.items():
+            for k,v in d.items():
+                nml_info[s][k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(namelist_fire_params):
         nml_path = osp.join(run_path, 'namelist.fire')
         logging.debug('adding options to namelist fire {}'.format(nml_path))
         nml_info = f90nml.read(nml_path)   
-        for k,v in namelist_fire_params.items():
-            for s,d in nml_info.items():
-                if k in d.keys():
-                    nml_info[s][k] = v
+        for s,d in namelist_fire_params.items():
+            for k,v in d.items():
+                nml_info[s][k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(input_files):
         logging.debug('adding additional files')
