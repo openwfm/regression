@@ -69,8 +69,8 @@ def run_command(command, arguments, answers, **kwargs):
 
         for question, answer in answers.items():
             if question in current_line:
-                print(' ' + answer + '\n')
-                process.stdin.write(answer + '\n')
+                print(' {}\n'.format(answer))
+                process.stdin.write('{}\n'.format(answer))
                 process.stdin.flush()
                 current_line = ""
                 break
@@ -101,19 +101,19 @@ def checkout(commit="", **kwargs):
     # Run git checkout
     return run_command('git',['checkout', commit], {})
 
-def configure(configure_opt="", option_number="34", nesting="1"):
+def configure(config_optim="", config_option="34", nesting="1"):
     """
     This function runs the configuration part of the WRF build process.
-    :param configure_opt: The configuration options to be passed to the ./configure script.
-    :param option_number: The option to be selected when the configure script prompts for selection.
+    :param config_optim: The configuration options to be passed to the ./configure script.
+    :param config_option: The option to be selected when the configure script prompts for selection.
     :return: The return code of the configure process.
     """
     # Run ./clean -a before configure
     run_command('./clean', ['-a'], {})
 
     command = './configure'
-    arguments = [configure_opt]
-    answers = {'Enter selection': option_number, 'Compile for nesting': nesting}
+    arguments = [config_optim]
+    answers = {'Enter selection': config_option, 'Compile for nesting': nesting}
     
     return run_command(command, arguments, answers)
 
@@ -128,13 +128,13 @@ def compile(build):
 
     return run_command(command, arguments, {})
 
-def build_wrf(commit, configure_opt="", option_number="1", nesting="1", 
+def build_wrf(commit, config_optim="", config_option="1", nesting="1", 
               build="em_fire", clone_dir="", **kwargs):
     """
     This function orchestrates the WRF build process by first running configuration and then compile. 
     :param commit: The branch or commit to checkout before building the code.
-    :param configure_opt: The configuration options to be passed to the ./configure script.
-    :param option_number: The option to be selected when the configure script prompts for selection.
+    :param config_optim: The configuration options to be passed to the ./configure script.
+    :param config_option: The option to be selected when the configure script prompts for selection.
     :param build: The build string to be passed to the ./compile script.
     :param clone_dir: directory to the clone.
     :return: None.
@@ -146,8 +146,8 @@ def build_wrf(commit, configure_opt="", option_number="1", nesting="1",
     # checking out commit
     checkout(commit)
 
-    configure_return = configure(configure_opt=configure_opt,
-                              option_number=option_number,
+    configure_return = configure(config_optim=config_optim,
+                              config_option=config_option,
                               nesting=nesting)
     # Check if the configure.wrf file exists after running configure
     if configure_return['code'] != 0 or not os.path.exists('configure.wrf'):
@@ -216,13 +216,18 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     :return: None.
     """
     sub_tmpl_path = kwargs.get('sub_tmpl_path')
-    case_path = kwargs.get('case_path')
+    tests_dir = kwargs.get('tests_dir', 'tests')
+    commit = kwargs.get('commit', 'master')
     test_path = kwargs.get('test_path')
     test_name = kwargs.get('test_name')
     namelist_input_params = kwargs.get('namelist_input_params', {})
     namelist_fire_params = kwargs.get('namelist_fire_params', {})
     input_files = kwargs.get('input_files', {})
     real = kwargs.get('real', False)
+    # Create case path
+    case_path = ensure_dir(
+        osp.abspath(osp.join(tests_dir, commit, test_name))
+    )
     # Copy test case
     orig_path = osp.join(clone_dir, test_path)
     copy_test(orig_path, case_path, namelist_input_params=namelist_input_params, 
@@ -243,7 +248,8 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     run_return = run_command('sbatch', [osp.basename(sub_tmpl_path)], {})
     if run_return['code'] != 0:
         print("Error in submiting. Exiting...")
-        return 1
+        return None
+    return case_path
 
 # __main__ entry point for testing
 if __name__ == "__main__":
@@ -253,20 +259,18 @@ if __name__ == "__main__":
         "clone_dir" : "wrf-sfire-local",
         "tests_dir" : "tests",
         "commit" : "develop-61",
-        "configure_opt" : "-d",
-        "option_number" : "34",
-        "nesting" : "1",
+        "config_optim" : "-d",
+        "config_option" : 34,
+        "nesting" : 1,
         "build" : "em_fire",
         "sub_tmpl_path": "/tmp/aws_mpi.sub",
         "test_name": "hill_rothermel",
         "test_path": "test/em_fire/hill",
-        "wall_time_hrs": "2",
-        "n_proc": "96"
+        "wall_time_hrs": 2,
+        "n_proc": 32
     } 
     conf['clone_dir'] = osp.abspath(conf['clone_dir']) 
 
     clone(**conf) 
     build_wrf(**conf)
-
-    conf['case_path'] = ensure_dir(osp.abspath(osp.join(conf['tests_dir'], conf['commit'], conf['test_name'])))
     run_wrf_sub(**conf)
