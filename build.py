@@ -175,11 +175,11 @@ def build_wrf(commit, config_optim="", config_option="1", nesting="1",
 def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_params={}, input_files=[]):
     """
     This function creates run test folder from original test case.
-    :param test_path: 
-    :param run_path: 
-    :param namelist_input_params:
-    :param namelist_fire_params:
-    :param input_files:
+    :param test_path: path to already existing test case.
+    :param run_path: path to new run test case.
+    :param namelist_input_params: parameters to be changed in namelist input.
+    :param namelist_fire_params: parameters to be changed in namelist fire.
+    :param input_files: files to be added to the run test folder.
     :return: None.
     """
     if osp.exists(run_path):
@@ -256,6 +256,7 @@ if __name__ == "__main__":
 
     conf = {
         "git_url" : "https://github.com/openwfm/WRF-SFIRE",
+        "build_path": ".",
         "clone_dir" : "wrf-sfire-local",
         "tests_dir" : "tests",
         "commit" : "develop-61",
@@ -269,7 +270,7 @@ if __name__ == "__main__":
         "wall_time_hrs": 2,
         "n_proc": 32
     } 
-    conf['clone_dir'] = osp.abspath(conf['clone_dir']) 
+    conf['clone_dir'] = osp.abspath(osp.join(conf['build_path'], conf['clone_dir']))
 
     clone(**conf) 
     build_wrf(**conf)

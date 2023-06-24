@@ -9,22 +9,25 @@ def regression_test(js):
         'git_url': js.get('git_url', 'https://github.com/openwfm/WRF-SFIRE'),
         'commit_ref': js.get('commit_ref', 'master'),
         'commit_dev': js.get('commit_dev', 'develop'),
+        'build_path': js.get('build_path', 'build'),
+        'tests_dir': js.get('tests_dir', 'tests'),
         'build': js.get('build', 'em_fire'),
         'sub_tmpl_path': js.get('sub_tmpl_path', '/tmp/aws_mpi.sub'),
         'wall_time_hrs': js.get('wall_time_hrs', 2)
     }
+    build_path = test_case['build_path']
     commits = [js.get('commit_ref', 'master'), js.get('commit_dev', 'develop')]
     for commit in commits:
         for config_option in js.get('config_options', [34]):
             for config_optim in js.get('config_optims', [""]):
                 for nesting in js.get('nestings', [1]):
-                    build_dir = '_'.join(
+                    build_dir = osp.join(build_path, '_'.join(
                         [
                             x for x in [
-                                'wrf-sfire', commit, config_option, config_optim, nesting
+                                'wrf-sfire', commit, str(config_option), str(config_optim), str(nesting)
                             ] if len(x)
                         ]
-                    )
+                    ))
                     test_case.update({
                         'clone_dir': osp.abspath(build_dir),
                         'commit': commit,
@@ -35,10 +38,10 @@ def regression_test(js):
                     clone(**test_case) 
                     build_wrf(**test_case)
                     for name,opts in js.get('test_cases',{}).items():
+                        path = opts.get('path', '')
                         for n_proc in opts.get('n_cpu', [1]):
                             for config in opts.get('configs', []):
                                 info = config.get('info', '')
-                                path = config.get('path', '')
                                 namelist_input_params = config.get('namelist_input_params', {})
                                 namelist_fire_params = config.get('namelist_fire_params', {})
                                 input_files = config.get('input_files', {})
