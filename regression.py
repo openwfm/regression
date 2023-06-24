@@ -3,13 +3,16 @@ import os.path as osp
 import json
 import sys
 import os
+import logging
 
 def regression_test(js):
     test_cases = []
     test_case = {
         'git_url': js.get('git_url', 'https://github.com/openwfm/WRF-SFIRE'),
         'commit_ref': js.get('commit_ref', 'master'),
-        'commit_dev': js.get('commit_dev', 'develop'),
+        'rebuild_ref': js.get('rebuild_ref', True),
+        'commit_dev': js.get('commit_dev', 'release'),
+        'rebuild_dev': js.get('rebuild_ref', True),
         'build_path': js.get('build_path', 'build'),
         'tests_dir': js.get('tests_dir', 'tests'),
         'build': js.get('build', 'em_fire'),
@@ -17,8 +20,9 @@ def regression_test(js):
         'wall_time_hrs': js.get('wall_time_hrs', 2)
     }
     build_path = test_case['build_path']
-    commits = [js.get('commit_ref', 'master'), js.get('commit_dev', 'develop')]
-    for commit in commits:
+    rebuilds = [test_case['rebuild_ref'], test_case['rebuild_dev']]
+    commits = [test_case['commit_ref'], test_case['commit_dev']]
+    for commit,rebuild in zip(commits,rebuilds):
         for config_option in js.get('config_options', [34]):
             for config_optim in js.get('config_optims', [""]):
                 for nesting in js.get('nestings', [1]):
@@ -36,8 +40,9 @@ def regression_test(js):
                         'config_optim': config_optim,
                         'nesting': nesting
                     })
-                    clone(**test_case) 
-                    build_wrf(**test_case)
+                    if rebuild or not osp.exists(test_case['clone_dir']):
+                        clone(**test_case) 
+                        build_wrf(**test_case)
                     for name,opts in js.get('test_cases',{}).items():
                         path = opts.get('path', '')
                         for n_proc in opts.get('n_cpu', [1]):
@@ -64,6 +69,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print('Usage: python {} reg_test_json'.format(sys.argv[0]))
         sys.exit()
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     cwd = osp.abspath('.')
     js = json.load(open(sys.argv[1]))
     test_cases = regression_test(js)

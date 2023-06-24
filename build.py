@@ -6,6 +6,7 @@ import shutil
 import os
 import os.path as osp
 import f90nml
+import logging
 
 def ensure_dir(path):
     """
@@ -29,7 +30,7 @@ def symlink_unless_exists(link_tgt, link_loc):
     :param link_tgt: link target
     :param link_loc: link location
     """
-    print('Linking %s -> %s' % (link_loc, link_tgt))
+    logging.info('Linking %s -> %s' % (link_loc, link_tgt))
     if osp.isfile(link_tgt) or osp.isdir(link_tgt):
         if not osp.lexists(link_loc):
             os.symlink(link_tgt, link_loc)
@@ -37,7 +38,7 @@ def symlink_unless_exists(link_tgt, link_loc):
             os.remove(link_loc)
             os.symlink(link_tgt, link_loc)
     else:
-        print('ERROR: Link target %s does not exist' % link_tgt)
+        logging.error('Link target %s does not exist' % link_tgt)
 
 def run_command(command, arguments, answers, **kwargs):
     """
@@ -69,7 +70,7 @@ def run_command(command, arguments, answers, **kwargs):
 
         for question, answer in answers.items():
             if question in current_line:
-                print(' {}\n'.format(answer))
+                logging.info(' {}\n'.format(answer))
                 process.stdin.write('{}\n'.format(answer))
                 process.stdin.flush()
                 current_line = ""
@@ -140,7 +141,7 @@ def build_wrf(commit, config_optim="", config_option="1", nesting="1",
     :return: None.
     """
 
-    print('Building in ' + clone_dir)
+    logging.info('Building in ' + clone_dir)
     os.chdir(clone_dir)
 
     # checking out commit
@@ -151,25 +152,25 @@ def build_wrf(commit, config_optim="", config_option="1", nesting="1",
                               nesting=nesting)
     # Check if the configure.wrf file exists after running configure
     if configure_return['code'] != 0 or not os.path.exists('configure.wrf'):
-        print("Error in configuration. Exiting...")
+        logging.error("Error in configuration. Exiting...")
         return
 
     if build is None:
-        print("Build not requested. Exiting...")
+        logging.error("Build not requested. Exiting...")
         return 1
     
     compile_return = compile(build)
 
     if compile_return['code'] != 0:
-        print("Error in compile. Exiting...")
+        logging.error("Error in compile. Exiting...")
         return 1
 
     compile_out = compile_return['output']
     if 'Executables successfully built' in compile_out:  
-        print("Build was successful.")
+        logging.info("Build was successful.")
         return
     else:
-        print("Build was not successful.")
+        logging.error("Build was not successful.")
         return 1
 
 def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_params={}, input_files=[]):
@@ -186,21 +187,25 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
         shutil.rmtree(run_path)
     shutil.copytree(test_path, run_path)
     if len(namelist_input_params):
-        print('adding options to namelist input')
         nml_path = osp.join(run_path, 'namelist.input')
-        nml_info = f90nml.read(nml_path)
-        for k,v in namelist_input_params:
-            nml_info[k] = v
+        logging.debug('adding options to namelist input {}'.format(nml_path))
+        nml_info = f90nml.read(nml_path) 
+        for k,v in namelist_input_params.items():
+            for s,d in nml_info.items():
+                if k in d.keys():
+                    nml_info[s][k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(namelist_fire_params):
-        print('adding options to namelist fire')
         nml_path = osp.join(run_path, 'namelist.fire')
+        logging.debug('adding options to namelist fire {}'.format(nml_path))
         nml_info = f90nml.read(nml_path)   
-        for k,v in namelist_fire_params:
-            nml_info[k] = v
+        for k,v in namelist_fire_params.items():
+            for s,d in nml_info.items():
+                if k in d.keys():
+                    nml_info[s][k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(input_files):
-        print('adding additional files')
+        logging.debug('adding additional files')
         for k,v in input_files:
             fpath = osp.join(run_path,k)
             if osp.exists(fpath):
@@ -208,7 +213,7 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
             shutil.copyfile(v,fpath)
 
 def run_local(clone_dir, n_proc="1", dmpar=True, **kwargs):
-    print('not done yet')
+    logging.error('option not supported')
 
 def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     """
@@ -233,15 +238,19 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     )
     # Copy test case
     orig_path = osp.join(clone_dir, test_path)
+    logging.info('cloning test case {} from {}'.format(case_path, orig_path))
     copy_test(orig_path, case_path, namelist_input_params=namelist_input_params, 
                 namelist_fire_params=namelist_fire_params, input_files=input_files)
     # Link executables
     if real:
+        logging.info('linking executables real.exe and wrf.exe')
         symlink_unless_exists(osp.join(clone_dir,'main','real.exe'), osp.join(case_path, 'real.exe'))
     else:
+        logging.info('linking executables ideal.exe and wrf.exe')
         symlink_unless_exists(osp.join(clone_dir,'main','ideal.exe'), osp.join(case_path, 'ideal.exe'))
     symlink_unless_exists(osp.join(clone_dir,'main','wrf.exe'), osp.join(case_path, 'wrf.exe'))
     # Create sub file from template
+    logging.info('create sub file and run sbatch job')
     script_tmpl = open(sub_tmpl_path).read()
     args = {'test_case': test_name, 'wall_time_hrs': int(wall_time_hrs), 'np': int(n_proc)}
     with open(osp.join(case_path, osp.basename(sub_tmpl_path)), 'w') as f:
@@ -250,7 +259,7 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     # Run job
     run_return = run_command('sbatch', [osp.basename(sub_tmpl_path)], {})
     if run_return['code'] != 0:
-        print("Error in submiting. Exiting...")
+        logging.error('Error in submiting. Exiting...')
         return None
     return case_path
 

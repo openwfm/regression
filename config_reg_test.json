@@ -1,7 +1,9 @@
 {
     "git_url": "https://github.com/openwfm/WRF-SFIRE",
     "commit_ref": "master",
+    "rebuild_ref": false,
     "commit_dev": "release",
+    "rebuild_dev": false,
     "build_path": "/shared/afarguell/build",
     "tests_dir": "/shared/afarguell/tests",
     "build": "em_fire",
