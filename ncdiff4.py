@@ -3,13 +3,13 @@ import numpy as np
 import sys
 
 def ncdiff4(file1, file2, do_print=1):
-    ###
+    """
     Compare two netcdf files
     :param file1: file name
     :param file2: file name
     :param do_print: print if True
     :returns: max relative error
-    ###
+    """
 
     maxreldif = 0.
 
@@ -24,7 +24,7 @@ def ncdiff4(file1, file2, do_print=1):
     # Iterate through all time steps in both files
     rows1, cols1 = times1.shape
     rows2, cols2 = times2.shape
-    if rows1 ~= rows2 or cols1 ~= cols2:
+    if rows1 != rows2 or cols1 != cols2:
         print('arrays Times are not the same size')
         return np.inf
     for time_index, (time1, time2) in enumerate(zip(times1, times2)):
