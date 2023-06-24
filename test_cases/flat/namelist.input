@@ -1,7 +1,7 @@
  &time_control
  run_days                            = 0,
  run_hours                           = 0,
- run_minutes                         = 15,
+ run_minutes                         = 31,
  run_seconds                         = 0,
  start_year                          = 0001, 0001, 0001,
  start_month                         = 01,   01,   01,
@@ -28,20 +28,20 @@
  /
 
  &domains
- time_step                           = 3,
+ time_step                           = 0,
  !time_step                           = 5,
- time_step_fract_num                 = 300,
+ time_step_fract_num                 = 50,
  time_step_fract_den                 = 100,
  max_dom                             = 1,
  s_we                                = 1,     1,     1,
- e_we                                = 250,    43,    43,
+ e_we                                = 112,    43,    43,
  s_sn                                = 1,     1,     1,
- e_sn                                = 250,    43,    43,
+ e_sn                                = 112,    43,    43,
  s_vert                              = 1,     1,     1,
  e_vert                              = 21,    41,    41,
  dx                                  = 20,    30,    10,
  dy                                  = 20,    30,    10,
- ztop                                = 400, 1500, 1500,
+ ztop                                = 1500, 1500, 1500,
  grid_id                             = 1,     2,     3,
  parent_id                           = 0,     1,     2,
  i_parent_start                      = 0,     1,    1,
@@ -50,8 +50,8 @@
  parent_time_step_ratio              = 1,     2,     3,
  feedback                            = 1,
  smooth_option                       = 0
- sr_x                                = 20,     0,     0
- sr_y                                = 20,     0,     0
+ sr_x                                = 10,     0,     0
+ sr_y                                = 10,     0,     0
  /
 
  &physics
@@ -128,11 +128,11 @@
  fire_num_ignitions = 1,         ! integer, only the first fire_num_ignition used, up to 5 allowed
  fire_ignition_ros1 = 0.1,      ! ignition rate of spread, m/s
  fire_ignition_clamp=1,         ! clamp ignition to grid
- fire_ignition_start_x1 = 2500,  ! start points of ignition lines, in m from lower left corner
- fire_ignition_start_y1 = 2500,  ! start points of ignition lines, in m from lower left corner
- fire_ignition_end_x1 =   2500,  ! end points of ignition lines, in m from lower left corner
- fire_ignition_end_y1 =   2500,  ! end points of ignition lines, in m from lower left corner
- fire_ignition_radius1 =    18,  ! all within this radius will ignite, > fire mesh step
+ fire_ignition_start_x1 = 1120,  ! start points of ignition lines, in m from lower left corner
+ fire_ignition_start_y1 = 1120,  ! start points of ignition lines, in m from lower left corner
+ fire_ignition_end_x1 =   1120,  ! end points of ignition lines, in m from lower left corner
+ fire_ignition_end_y1 =   1120,  ! end points of ignition lines, in m from lower left corner
+ fire_ignition_radius1 =    20,  ! all within this radius will ignite, > fire mesh step
  fire_ignition_start_time1 = 2,  ! sec for ignition from the start
  fire_ignition_end_time1  =  4,  ! sec for ignition from the start
  fire_ignition_ros2 = 0.01,      ! ignition rate of spread, m/s
@@ -158,7 +158,7 @@
  fire_fmc_read = 1,          ! initialize fuel moisture classes
 !
 ! verbosity
- fire_print_msg     = 2,        ! 1 print fire debugging messages
+ fire_print_msg     = 1,        ! 1 print fire debugging messages
  fire_print_file    = 0,        ! 1 write files for matlab
 !
 ! experiments

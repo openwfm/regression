@@ -1,13 +1,18 @@
 {
     "git_url": "https://github.com/openwfm/WRF-SFIRE",
-    "clone_dir": "wrf-sfire-local",
     "commit_ref": "master",
     "commit_dev": "develop-61",
-    "config_options": 34,
-    "config_optim": "",
+    "build_path": "/shared/afarguell/build",
+    "tests_dir": "/shared/afarguell/tests",
+    "build": "em_fire",
+    "sub_tmpl_path": "/tmp/aws_mpi.sub",
+    "wall_time_hrs": 2,
+    "config_options": [32, 34],
+    "config_optims": [""],
+    "nestings": [1],
     "test_cases": {
         "hill": {
-            "path": "tests/em_sfire/flat",
+            "path": "test/em_fire/hill",
             "n_cpu": [1, 64],
             "configs":
                 [
