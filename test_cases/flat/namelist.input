@@ -1,7 +1,7 @@
  &time_control
  run_days                            = 0,
  run_hours                           = 0,
- run_minutes                         = 15,
+ run_minutes                         = 31,
  run_seconds                         = 0,
  start_year                          = 0001, 0001, 0001,
  start_month                         = 01,   01,   01,
@@ -28,9 +28,9 @@
  /
 
  &domains
- time_step                           = 3,
+ time_step                           = 0,
  !time_step                           = 5,
- time_step_fract_num                 = 300,
+ time_step_fract_num                 = 50,
  time_step_fract_den                 = 100,
  max_dom                             = 1,
  s_we                                = 1,     1,     1,
@@ -41,7 +41,7 @@
  e_vert                              = 21,    41,    41,
  dx                                  = 20,    30,    10,
  dy                                  = 20,    30,    10,
- ztop                                = 400, 1500, 1500,
+ ztop                                = 1500, 1500, 1500,
  grid_id                             = 1,     2,     3,
  parent_id                           = 0,     1,     2,
  i_parent_start                      = 0,     1,    1,
@@ -158,7 +158,7 @@
  fire_fmc_read = 1,          ! initialize fuel moisture classes
 !
 ! verbosity
- fire_print_msg     = 2,        ! 1 print fire debugging messages
+ fire_print_msg     = 1,        ! 1 print fire debugging messages
  fire_print_file    = 0,        ! 1 write files for matlab
 !
 ! experiments
