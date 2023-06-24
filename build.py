@@ -186,18 +186,21 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
         shutil.rmtree(run_path)
     shutil.copytree(test_path, run_path)
     if len(namelist_input_params):
+        print('adding options to namelist input')
         nml_path = osp.join(run_path, 'namelist.input')
         nml_info = f90nml.read(nml_path)
         for k,v in namelist_input_params:
             nml_info[k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(namelist_fire_params):
+        print('adding options to namelist fire')
         nml_path = osp.join(run_path, 'namelist.fire')
-        nml_info = f90nml.read(osp.join(run_path, 'namelist.fire'))   
-        for k,v in namelist_input_params:
+        nml_info = f90nml.read(nml_path)   
+        for k,v in namelist_fire_params:
             nml_info[k] = v
         f90nml.write(nml_info, nml_path, force=True) 
     if len(input_files):
+        print('adding additional files')
         for k,v in input_files:
             fpath = osp.join(run_path,k)
             if osp.exists(fpath):

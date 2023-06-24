@@ -2,6 +2,7 @@ from build import clone, build_wrf, run_wrf_sub
 import os.path as osp
 import json
 import sys
+import os
 
 def regression_test(js):
     test_cases = []
@@ -47,7 +48,7 @@ def regression_test(js):
                                 input_files = config.get('input_files', {})
                                 test_case.update({
                                     'n_proc': n_proc,
-                                    'test_name': '_'.join([name.lower(), info.lower()]),
+                                    'test_name': '_'.join([name.lower(), info.lower().replace(' ', '_'), str(n_proc)]),
                                     'test_path': path,
                                     'namelist_input_params': namelist_input_params,
                                     'namelist_fire_params': namelist_fire_params,
@@ -63,6 +64,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print('Usage: python {} reg_test_json'.format(sys.argv[0]))
         sys.exit()
+    cwd = osp.abspath('.')
     js = json.load(open(sys.argv[1]))
     test_cases = regression_test(js)
+    os.chdir(cwd)
     json.dump(test_cases, open('test_cases.json','w'), indent=4, separators=(',', ': '))
+    

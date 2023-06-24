@@ -2,11 +2,12 @@ import netCDF4 as nc
 import numpy as np
 import sys
 
-def ncdiff4(file1, file2, do_print=1):
+def ncdiff4(file1, file2, vars, do_print=1):
     """
     Compare two netcdf files
     :param file1: file name
     :param file2: file name
+    :param vars: variables to test
     :param do_print: print if True
     :returns: max relative error
     """
@@ -35,15 +36,16 @@ def ncdiff4(file1, file2, do_print=1):
                 print(f"Time step {time_index}: {time1.tobytes().decode().strip()}")
             
             # Compare variables
-            for var_name, variable in dataset1.variables.items():
+            for var_name in dataset1.variables.keys():
                 # Skip the 'Times' variable
                 if var_name == "Times":
                     continue
                 
                 # Check if the variable exists in both files
                 if var_name in dataset2.variables:
-                    var1 = variable[:]
-                    var2 = dataset2.variables[var_name][:]
+                    print(var_name)
+                    var1 = np.ravel(dataset1.variables[var_name])
+                    var2 = np.ravel(dataset2.variables[var_name])
                     
                     # Check if the dimensions are equal (ignoring unlimited time dimension)
                     if var1.shape[1:] == var2.shape[1:]:
@@ -84,5 +86,5 @@ def ncdiff4(file1, file2, do_print=1):
 
 if __name__ == "__main__":
     # Example usage
-    print('max relative difference',ncdiff4(sys.argv[1],sys.argv[2]),do_print=2)
+    print('max relative difference',ncdiff4(sys.argv[1],sys.argv[2],sys.argv[3:]),do_print=2)
 
