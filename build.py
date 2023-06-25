@@ -273,7 +273,7 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     if run_return["code"] != 0:
         logging.error("Error in submiting. Exiting...")
         return {}
-    run_return["output"]
+    job_id = run_return["output"]
     return {'case_path': case_path, 'job_id': job_id}
 
 
