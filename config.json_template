@@ -2,7 +2,7 @@
     "git_url": "https://github.com/openwfm/WRF-SFIRE",
     "commit_ref": "MASTER",
     "commit_dev": "RELEASE",
-    "path": "PATH",
+    "run_path": "PATH",
     "build": "em_fire",
     "sub_tmpl_path": "submit/aws.sub",
     "wall_time_hrs": 2,
