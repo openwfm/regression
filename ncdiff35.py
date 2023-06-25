@@ -1,9 +1,10 @@
 import numpy as np
 from netCDF4 import Dataset
 
+
 def compare_netcdf_files(file1, file2):
-    nc1 = Dataset(file1, 'r')
-    nc2 = Dataset(file2, 'r')
+    nc1 = Dataset(file1, "r")
+    nc2 = Dataset(file2, "r")
 
     variables1 = nc1.variables.keys()
     variables2 = nc2.variables.keys()
@@ -17,9 +18,9 @@ def compare_netcdf_files(file1, file2):
             # Ignore variables with different dimensions
             continue
 
-        if 'Time' in var1.dimensions and 'Time' in var2.dimensions:
-            time1 = nc1.variables['Times']
-            time2 = nc2.variables['Times']
+        if "Time" in var1.dimensions and "Time" in var2.dimensions:
+            time1 = nc1.variables["Times"]
+            time2 = nc2.variables["Times"]
 
             if not np.array_equal(time1, time2):
                 # Ignore time frames with different "Times" variable
@@ -45,8 +46,8 @@ def compare_netcdf_files(file1, file2):
     nc1.close()
     nc2.close()
 
-# Usage example
-file1 = 'path/to/first/file.nc'
-file2 = 'path/to/second/file.nc'
-compare_netcdf_files(file1, file2)
 
+# Usage example
+file1 = "path/to/first/file.nc"
+file2 = "path/to/second/file.nc"
+compare_netcdf_files(file1, file2)

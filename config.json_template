@@ -1,15 +1,12 @@
 {
     "git_url": "https://github.com/openwfm/WRF-SFIRE",
-    "commit_ref": "master",
-    "rebuild_ref": false,
-    "commit_dev": "release",
-    "rebuild_dev": false,
-    "build_path": "/shared/afarguell/build",
-    "tests_dir": "/shared/afarguell/tests",
+    "commit_ref": "MASTER",
+    "commit_dev": "RELEASE",
+    "path": "PATH",
     "build": "em_fire",
-    "sub_tmpl_path": "/tmp/aws_mpi.sub",
+    "sub_tmpl_path": "submit/aws.sub",
     "wall_time_hrs": 2,
-    "config_options": [32, 34],
+    "config_options": [34],
     "config_optims": [""],
     "nestings": [1],
     "test_cases": {
@@ -21,7 +18,9 @@
                     {
                         "info": "Rothermel", 
                         "namelist_fire_params": {
-                            "ibeh": 1
+                            "fuel_scalars": {
+                                "ibeh": 1
+                            }
                         },
                         "namelist_input_params": {},
                         "input_files": {}
@@ -29,7 +28,9 @@
                     {
                         "info": "Balbi", 
                         "namelist_fire_params": {
-                            "ibeh": 2
+                            "fuel_scalars": {
+                                "ibeh": 2
+                            }
                         },
                         "namelist_input_params": {},
                         "input_files": {}
