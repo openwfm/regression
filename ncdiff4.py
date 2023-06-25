@@ -38,8 +38,8 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
             # Compare variables
             for var_name in dataset1.variables.keys():
-                # Skip the 'Times' variable
-                if var_name == "Times":
+                # Skip the 'Times' variable and variables not in vars
+                if var_name == "Times" or var_name not in vars:
                     continue
 
                 # Check if the variable exists in both files

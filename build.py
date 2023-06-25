@@ -272,8 +272,9 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     run_return = run_command("sbatch", [osp.basename(sub_tmpl_path)], {})
     if run_return["code"] != 0:
         logging.error("Error in submiting. Exiting...")
-        return None
-    return case_path
+        return {}
+    job_id = run_return["output"]
+    return {'case_path': case_path, 'job_id': job_id}
 
 
 # __main__ entry point for testing
