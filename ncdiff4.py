@@ -96,4 +96,5 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
 if __name__ == "__main__":
     # Example usage
+    # python ncdiff4.py hill1 hill12 FIRE_AREA LFN
     print("max relative difference", ncdiff4(sys.argv[1], sys.argv[2], sys.argv[3:]), do_print=2)
