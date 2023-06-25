@@ -74,8 +74,8 @@ def run_command(command, arguments, answers, **kwargs):
 
         for question, answer in answers.items():
             if question in current_line:
-                logging.info(" {}\n".format(answer))
-                process.stdin.write("{}\n".format(answer))
+                logging.info(f" {answer}\n")
+                process.stdin.write(f"{answer}\n")
                 process.stdin.flush()
                 current_line = ""
                 break
@@ -197,7 +197,7 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
     shutil.copytree(test_path, run_path)
     if len(namelist_input_params):
         nml_path = osp.join(run_path, "namelist.input")
-        logging.debug("adding options to namelist input {}".format(nml_path))
+        logging.debug(f"adding options to namelist input {nml_path}")
         nml_info = f90nml.read(nml_path)
         for s, d in namelist_input_params.items():
             for k, v in d.items():
@@ -205,7 +205,7 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
         f90nml.write(nml_info, nml_path, force=True)
     if len(namelist_fire_params):
         nml_path = osp.join(run_path, "namelist.fire")
-        logging.debug("adding options to namelist fire {}".format(nml_path))
+        logging.debug(f"adding options to namelist fire {nml_path}")
         nml_info = f90nml.read(nml_path)
         for s, d in namelist_fire_params.items():
             for k, v in d.items():
@@ -242,7 +242,7 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     real = kwargs.get("real", False)
     # Copy test case
     orig_path = osp.join(clone_dir, test_path)
-    logging.info("cloning test case {} from {}".format(case_path, orig_path))
+    logging.info(f"cloning test case {case_path} from {orig_path}")
     copy_test(
         orig_path,
         case_path,

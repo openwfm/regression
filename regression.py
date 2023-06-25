@@ -79,7 +79,7 @@ def regression_test(js):
                                 case_path = ensure_dir(
                                     osp.abspath(
                                         osp.join(
-                                            run_path, tag_name, test_name
+                                            run_path, test_name, commit
                                         )
                                     )
                                 )
