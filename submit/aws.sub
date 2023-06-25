@@ -1,0 +1,11 @@
+#!/bin/bash
+# based on templates/aws_mpi.sh
+#SBATCH --job-name=%(test_case)s
+#SBATCH --partition=compute
+#SBATCH --time=%(wall_time_hrs)02d:00:00   # Max wall-clock time
+#SBATCH --ntasks=%(np)d                    # Total number of MPI processe
+
+rm -f rsl.*
+
+mpirun -np 1 ideal.exe
+mpirun wrf.exe 
