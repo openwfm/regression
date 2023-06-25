@@ -16,7 +16,7 @@ def regression_test(js):
         "rebuild_dev": js.get("rebuild_ref", True),
         "run_path": js.get("run_path", "."),
         "build": js.get("build", "em_fire"),
-        "sub_tmpl_path": js.get("sub_tmpl_path", "/tmp/aws_mpi.sub"),
+        "sub_tmpl_path": osp.abspath(js.get("sub_tmpl_path", "submit/aws.sub")),
         "wall_time_hrs": js.get("wall_time_hrs", 2),
     }
     build_path = osp.join(test_case["run_path"], "build")

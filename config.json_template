@@ -9,6 +9,8 @@
     "config_options": [34],
     "config_optims": [""],
     "nestings": [1],
+    "rebuild_ref": True,
+    "rebuild_dev": True, 
     "test_cases": {
         "hill": {
             "path": "test/em_fire/hill",
