@@ -6,5 +6,4 @@ These directories contain all the necessary files (besides the executables that 
 ln -s ../../main/*.exe .
 ```
 
-
 That will link the executables to your directory. Next you need to copy in your job script, run ideal.exe (assuming your job script does not do that already), and then run wrf.exe. 
