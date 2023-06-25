@@ -15,6 +15,7 @@
         "hill": {
             "path": "test/em_fire/hill",
             "n_cpu": [1, 64],
+            "vars": ['U', 'V', 'W', 'T', 'P', 'FIRE_AREA', 'FGRNHFX', 'FGRNQFX', 'ROS', 'LFN'],
             "configs":
                 [
                     {

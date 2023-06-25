@@ -1,10 +1,9 @@
-from build import clone, build_wrf, run_wrf_sub
+from build import clone, build_wrf, run_wrf_sub, ensure_dir
 import os.path as osp
 import json
 import sys
 import os
 import logging
-
 
 def regression_test(js):
     test_cases = []
@@ -19,6 +18,7 @@ def regression_test(js):
         "sub_tmpl_path": osp.abspath(js.get("sub_tmpl_path", "submit/aws.sub")),
         "wall_time_hrs": js.get("wall_time_hrs", 2),
     }
+    run_path = osp.join(test_case["run_path"], "reg_tests")
     build_path = osp.join(test_case["run_path"], "build")
     rebuilds = [test_case["rebuild_ref"], test_case["rebuild_dev"]]
     commits = [test_case["commit_ref"], test_case["commit_dev"]]
@@ -26,21 +26,21 @@ def regression_test(js):
         for config_option in js.get("config_options", [34]):
             for config_optim in js.get("config_optims", [""]):
                 for nesting in js.get("nestings", [1]):
+                    tag_name = "_".join(
+                        [
+                            x
+                            for x in [
+                                commit,
+                                str(config_option),
+                                str(config_optim),
+                                str(nesting),
+                            ]
+                            if len(x)
+                        ]
+                    )
                     build_dir = osp.join(
                         build_path,
-                        "_".join(
-                            [
-                                x
-                                for x in [
-                                    "wrf-sfire",
-                                    commit,
-                                    str(config_option),
-                                    str(config_optim),
-                                    str(nesting),
-                                ]
-                                if len(x)
-                            ]
-                        ),
+                        "_".join(["wrf-sfire", tag_name])
                     )
                     test_case.update(
                         {
@@ -62,20 +62,40 @@ def regression_test(js):
                                 namelist_input_params = config.get("namelist_input_params", {})
                                 namelist_fire_params = config.get("namelist_fire_params", {})
                                 input_files = config.get("input_files", {})
+                                test_name = "_".join(
+                                    [
+                                        x
+                                        for x in [
+                                            name.lower(), 
+                                            info.lower().replace(" ", "_"), 
+                                            str(n_proc),
+                                            str(config_option),
+                                            str(config_optim),
+                                            str(nesting)
+                                        ]
+                                        if len(x)
+                                    ]
+                                )
+                                case_path = ensure_dir(
+                                    osp.abspath(
+                                        osp.join(
+                                            run_path, tag_name, test_name
+                                        )
+                                    )
+                                )
                                 test_case.update(
                                     {
                                         "n_proc": n_proc,
-                                        "test_name": "_".join(
-                                            [name.lower(), info.lower().replace(" ", "_"), str(n_proc)]
-                                        ),
+                                        "test_name": test_name,
                                         "test_path": path,
+                                        "case_path": case_path,
                                         "namelist_input_params": namelist_input_params,
                                         "namelist_fire_params": namelist_fire_params,
                                         "input_files": input_files,
                                     }
                                 )
-                                case_path = run_wrf_sub(**test_case)
-                                test_case.update({"case_path": case_path})
+                                job_id = run_wrf_sub(**test_case)
+                                test_case.update({"job_id": job_id})
                                 test_cases.append(test_case)
     return test_cases
 

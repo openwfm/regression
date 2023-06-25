@@ -233,16 +233,13 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     :return: None.
     """
     sub_tmpl_path = kwargs.get("sub_tmpl_path")
-    run_path = kwargs.get("run_path", ".")
-    commit = kwargs.get("commit", "master")
+    case_path = kwargs.get("case_path", "")
     test_path = kwargs.get("test_path")
     test_name = kwargs.get("test_name")
     namelist_input_params = kwargs.get("namelist_input_params", {})
     namelist_fire_params = kwargs.get("namelist_fire_params", {})
     input_files = kwargs.get("input_files", {})
     real = kwargs.get("real", False)
-    # Create case path
-    case_path = ensure_dir(osp.abspath(osp.join(run_path, "reg_tests", commit, test_name)))
     # Copy test case
     orig_path = osp.join(clone_dir, test_path)
     logging.info("cloning test case {} from {}".format(case_path, orig_path))
@@ -273,9 +270,8 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     if run_return["code"] != 0:
         logging.error("Error in submiting. Exiting...")
         return {}
-    job_id = run_return["output"]
-    return {'case_path': case_path, 'job_id': job_id}
-
+    job_id = run_return["output"].split('\n')[0].split(' ')[-1]
+    return job_id
 
 # __main__ entry point for testing
 if __name__ == "__main__":
