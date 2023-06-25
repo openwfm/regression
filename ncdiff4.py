@@ -44,7 +44,7 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
                 # Check if the variable exists in both files
                 if var_name in dataset2.variables:
-                    print(var_name)
+                    # print(var_name)
                     var1 = np.ravel(dataset1.variables[var_name])
                     var2 = np.ravel(dataset2.variables[var_name])
 
@@ -96,4 +96,6 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
 if __name__ == "__main__":
     # Example usage
-    print("max relative difference", ncdiff4(sys.argv[1], sys.argv[2], sys.argv[3:]), do_print=2)
+    # python ncdiff4.py hill1 hill12 FIRE_AREA LFN
+    print("max relative difference", 
+          ncdiff4(sys.argv[1], sys.argv[2], sys.argv[3:], do_print=2))
