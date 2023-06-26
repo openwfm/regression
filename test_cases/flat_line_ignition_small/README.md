@@ -1,4 +1,4 @@
-# walking_flat_small Simulation
+# flat_line_ignition_small Simulation
 This simulation takes place on a flat plain with homogeneous fuels (fuel type 3 (Tall grass)) in this case. This wind profile is constant at 2m/s and the simulation is run in a one-way coupled (fire_atm_feedback = 0) mode. The igntion line occurs in a walking ignition pattern along the y axis. 
 
 This simulation should use ~16 cores. Any more or less than this will likely result in a crash, or the simulation will take much longer than the expected amount of time. This simulation should take about 10 minutes to run (this also varies based on the cluster and CPU's used). 
