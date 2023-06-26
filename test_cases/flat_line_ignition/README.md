@@ -1,8 +1,7 @@
-# Two Fires
+# walking_flat Simulation
+This simulation takes place on a flat plain with homogeneous fuels (fuel type 3 (Tall grass)) in this case. This wind profile is constant at 2m/s and the simulation is run in a one-way coupled (fire_atm_feedback = 0) mode. The igntion line occurs in a walking ignition pattern along the y axis. 
 
-This simulation takes place on a flat plain with homogeneous fuels (fuel type 3 (Tall grass)). There are two fires in this simulation with each ignition staggered. 
-
-This simulation should be run using 32-36 cores. Anything greater or less than this will likely cause a break. It should take around 15 minutes (depending on the cluster and CPU used). 
+This simulation should use ~360 cores. Any more or less than this will likely result in a crash, or the simulation will take much longer than the expected amount of time. This simulation should take about 16 minutes to run (this also varies based on the cluster and CPU's used). 
 
 List of Interesting Variables:
 

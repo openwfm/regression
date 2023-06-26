@@ -1,8 +1,9 @@
-# Two Fires
+# Flat_small Simulation
+This simulation takes place on a flat plain with homogeneous fuels (fuel type 3 (Tall grass)) in this case. This wind profile is constant at 2m/s and the simulation is run in a one-way coupled (fire_atm_feedback = 0) mode. 
 
-This simulation takes place on a flat plain with homogeneous fuels (fuel type 3 (Tall grass)). There are two fires in this simulation with each ignition staggered. 
+To change where the fire propagates, modify the input_sounding profile to the desired wind and wind direction. For information on input_soundings, please [click here](https://home.chpc.utah.edu/~u0631741/wrf-sfire/WRF_Sfire_in_ideal_cases.pdf) slide 5.
 
-This simulation should be run using 32-36 cores. Anything greater or less than this will likely cause a break. It should take around 15 minutes (depending on the cluster and CPU used). 
+This simulation should use ~16 cores. Any more or less than this will likely result in a crash, or the simulation will take much longer than the expected amount of time. This simulation should take about 10 minutes to run (this also varies based on the cluster and CPU's used). 
 
 List of Interesting Variables:
 
