@@ -1,9 +1,9 @@
 from glob import glob
 import os.path as osp
 import netCDF4 as nc
+import pandas as pd
 import numpy as np
 import json
-import sys
 
 
 def ncdiff4(file1, file2, vars, do_print=1):
@@ -111,14 +111,16 @@ if __name__ == "__main__":
                 if js['test_name'] not in results.keys():
                     results.update({
                         js['test_name']: {
-                            js['commit']: {
-                                'status': 'failed', 
-                                'paths': None
+                                'output': {
+                                    js['commit']: {
+                                    'status': 'failed', 
+                                    'paths': None
+                                }
                             }, 'vars': js['vars']
                         }
                     })
                 else:
-                    results[js['test_name']].update({
+                    results[js['test_name']]['output'].update({
                         js['commit']: {
                             'status': 'failed', 
                             'paths': None, 
@@ -128,26 +130,37 @@ if __name__ == "__main__":
             if js['test_name'] not in results.keys():
                 results.update({
                     js['test_name']: {
-                        js['commit']: {
-                            'status': 'success', 
-                            'paths': wrfout_paths
+                        'output': {
+                            js['commit']: {
+                                'status': 'success', 
+                                'paths': wrfout_paths
+                            }
                         }, 'vars': js['vars']
                     }
                 })
             else:
-                results[js['test_name']].update({
+                results[js['test_name']]['output'].update({
                     js['commit']: {
                         'status': 'success', 
                         'paths': wrfout_paths
                     }
                 })
+    table = {'test_case': [], 'diff': []}
+    table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
-        if all([v['status'] == 'success' for v in results[k].values() if 'status' in v]):
-            vars = results[k]['vars']
+        table['test_case'].append(k)
+        vars = results[k]['vars']
+        status = []
+        for c in results[k]['output'].keys():
+            table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
+        if all([v['status'] == 'success' for v in results[k]['output'].values()]):
             diff = 0.0
-            for p1,p2 in zip(*[v['paths'] for v in results[k].values() if 'paths' in v]):
-                diff += ncdiff4(p1, p2, vars, do_print=2)
+            for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
+                diff += ncdiff4(p1, p2, vars, do_print=3)
             results[k].update({'diff': diff})
+            table['diff'].append(diff)
         else:
-            results[k].update({'diff': np.inf})
-    
+            results[k].update({'diff': None})
+            table['diff'].append(None)
+    df = pd.DataFrame(table)
+    df.to_csv('reg_test.csv')
