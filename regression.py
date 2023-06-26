@@ -105,9 +105,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python {} reg_test_json".format(sys.argv[0]))
         sys.exit()
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     cwd = osp.abspath(".")
     js = json.load(open(sys.argv[1]))
     test_cases = regression_test(js)
     os.chdir(cwd)
-    json.dump(test_cases, open("test_cases.json", "w"), indent=4, separators=(",", ": "))
+    json.dump(test_cases, open("reg_tests.json", "w"), indent=4, separators=(",", ": "))
