@@ -56,6 +56,7 @@ def regression_test(js):
                         build_wrf(**test_case)
                     for name, opts in js.get("test_cases", {}).items():
                         path = opts.get("path", "")
+                        vars = opts.get("vars", [])
                         for n_proc in opts.get("n_cpu", [1]):
                             for config in opts.get("configs", []):
                                 info = config.get("info", "")
@@ -85,18 +86,19 @@ def regression_test(js):
                                 )
                                 test_case.update(
                                     {
+                                        "vars": vars,
                                         "n_proc": n_proc,
                                         "test_name": test_name,
                                         "test_path": path,
                                         "case_path": case_path,
                                         "namelist_input_params": namelist_input_params,
                                         "namelist_fire_params": namelist_fire_params,
-                                        "input_files": input_files,
+                                        "input_files": input_files
                                     }
                                 )
                                 job_id = run_wrf_sub(**test_case)
                                 test_case.update({"job_id": job_id})
-                                test_cases.append(test_case)
+                                test_cases.append(test_case.copy())
     return test_cases
 
 

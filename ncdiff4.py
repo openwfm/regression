@@ -1,5 +1,8 @@
+from glob import glob
+import os.path as osp
 import netCDF4 as nc
 import numpy as np
+import json
 import sys
 
 
@@ -95,7 +98,32 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
 
 if __name__ == "__main__":
-    # Example usage
-    # python ncdiff4.py hill1 hill12 FIRE_AREA LFN
-    print("max relative difference", 
-          ncdiff4(sys.argv[1], sys.argv[2], sys.argv[3:], do_print=2))
+    reg_tests = json.load(open('reg_tests.json'))
+    results = {}
+    for js in reg_tests:
+        wrfout_paths = sorted(glob(osp.join(js['case_path'], 'wrfout*')))
+        rsl_path = osp.join(js['case_path'], 'rsl.out.0000')
+        slurm_paths = sorted(glob(osp.join(js['case_path'], 'slurm*.out')))
+        if not osp.exists(rsl_path) and not len(slurm_paths) \
+            or osp.exists(rsl_path) and not 'SUCCESS COMPLETE WRF' in open(rsl_path).read() \
+            or not osp.exists(rsl_path) and len(slurm_paths) and not 'SUCCESS COMPLETE WRF' in open(slurm_paths[0]).read() \
+            or not len(wrfout_paths):
+                if js['test_name'] not in results.keys():
+                    results.update({js['test_name']: {js['commit']: {'status': 'failed', 'paths': None}}})
+                else:
+                    results[js['test_name']].update({js['commit']: {'status': 'failed', 'paths': None}})
+        else:
+            if js['test_name'] not in results.keys():
+                results.update({js['test_name']: {js['commit']: {'status': 'success', 'paths': wrfout_paths}}})
+            else:
+                results[js['test_name']].update({js['commit']: {'status': 'success', 'paths': wrfout_paths}})
+    for k in results.keys():
+        if all([result['status'] == 'success' for result in results[k].values()]):
+            vars = results[k][next(iter(results[k]))]['vars']
+            diff = 0.0
+            for p1,p2 in zip(*[v['paths'] for v in results[k].values()]):
+                diff += ncdiff4(p1, p2, vars, do_print=2)
+            results[k].update({'diff': diff})
+        else:
+            results[k].update({'diff': np.inf})
+    
