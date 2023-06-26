@@ -109,19 +109,43 @@ if __name__ == "__main__":
             or not osp.exists(rsl_path) and len(slurm_paths) and not 'SUCCESS COMPLETE WRF' in open(slurm_paths[0]).read() \
             or not len(wrfout_paths):
                 if js['test_name'] not in results.keys():
-                    results.update({js['test_name']: {js['commit']: {'status': 'failed', 'paths': None}}})
+                    results.update({
+                        js['test_name']: {
+                            js['commit']: {
+                                'status': 'failed', 
+                                'paths': None
+                            }, 'vars': js['vars']
+                        }
+                    })
                 else:
-                    results[js['test_name']].update({js['commit']: {'status': 'failed', 'paths': None}})
+                    results[js['test_name']].update({
+                        js['commit']: {
+                            'status': 'failed', 
+                            'paths': None, 
+                        }
+                    })
         else:
             if js['test_name'] not in results.keys():
-                results.update({js['test_name']: {js['commit']: {'status': 'success', 'paths': wrfout_paths}}})
+                results.update({
+                    js['test_name']: {
+                        js['commit']: {
+                            'status': 'success', 
+                            'paths': wrfout_paths
+                        }, 'vars': js['vars']
+                    }
+                })
             else:
-                results[js['test_name']].update({js['commit']: {'status': 'success', 'paths': wrfout_paths}})
+                results[js['test_name']].update({
+                    js['commit']: {
+                        'status': 'success', 
+                        'paths': wrfout_paths
+                    }
+                })
     for k in results.keys():
-        if all([result['status'] == 'success' for result in results[k].values()]):
-            vars = results[k][next(iter(results[k]))]['vars']
+        if all([v['status'] == 'success' for v in results[k].values() if 'status' in v]):
+            vars = results[k]['vars']
             diff = 0.0
-            for p1,p2 in zip(*[v['paths'] for v in results[k].values()]):
+            for p1,p2 in zip(*[v['paths'] for v in results[k].values() if 'paths' in v]):
                 diff += ncdiff4(p1, p2, vars, do_print=2)
             results[k].update({'diff': diff})
         else:
