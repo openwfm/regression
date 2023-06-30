@@ -47,38 +47,21 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
                 # Check if the variable exists in both files
                 if var_name in dataset2.variables:
-                    # print(var_name)
-                    var1 = np.ravel(dataset1.variables[var_name])
-                    var2 = np.ravel(dataset2.variables[var_name])
+                    #print(var_name)
+                    var1 = dataset1.variables[var_name][time_index]
+                    var2 = dataset2.variables[var_name][time_index]
 
                     # Check if the dimensions are equal (ignoring unlimited time dimension)
                     if var1.shape[1:] == var2.shape[1:]:
                         ntested += 1
-                        # Compute norms
-                        max_norm1 = np.max(np.abs(var1[time_index]))
-                        max_norm2 = np.max(np.abs(var2[time_index]))
-                        two_norm1 = np.linalg.norm(var1[time_index])
-                        two_norm2 = np.linalg.norm(var2[time_index])
-
                         # Compute relative differences
-                        rel_diff_max = abs(max_norm1 - max_norm2) / max(
-                            max_norm1, max_norm2, np.finfo(float).eps
+                        rel_diff_max = np.max(np.abs(var1 - var2)) / max(
+                            np.max(np.abs(var1)), np.max(np.abs(var2)), np.finfo(float).eps
                         )
-                        rel_diff_two = abs(two_norm1 - two_norm2) / max(
-                            two_norm1, two_norm2, np.finfo(float).eps
-                        )
-
-                        maxreldif = max(maxreldif, rel_diff_max)
-
                         if do_print > 2:
                             # Print the results
-                            print(f"Variable {var_name}:")
-                            print(
-                                f"  max-norm: {max_norm1}, {max_norm2} | Relative difference: {rel_diff_max}"
-                            )
-                            print(
-                                f"  2-norm: {two_norm1}, {two_norm2} | Relative difference: {rel_diff_two}"
-                            )
+                            print(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
+                        maxreldif = max(maxreldif, rel_diff_max)
                     else:
                         print(f"Variable {var_name} dimensions don't match. Exiting.")
                         return np.inf
@@ -113,8 +96,8 @@ if __name__ == "__main__":
                         js['test_name']: {
                                 'output': {
                                     js['commit']: {
-                                    'status': 'failed', 
-                                    'paths': None
+                                        'status': 'failed', 
+                                        'paths': None
                                 }
                             }, 'vars': js['vars']
                         }
@@ -145,22 +128,25 @@ if __name__ == "__main__":
                         'paths': wrfout_paths
                     }
                 })
-    table = {'test_case': [], 'diff': []}
+    table = {'test_case': [], 'relmaxdiff': []}
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
+        print(k)
         table['test_case'].append(k)
         vars = results[k]['vars']
         status = []
         for c in results[k]['output'].keys():
             table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
-            diff = 0.0
+            relmaxdiff = 0.0
             for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
-                diff += ncdiff4(p1, p2, vars, do_print=3)
-            results[k].update({'diff': diff})
-            table['diff'].append(diff)
+                relmaxdiff = max(relmaxdiff, ncdiff4(p1, p2, vars, do_print=2))
+            print(relmaxdiff)
+            results[k].update({'relmaxdiff': relmaxdiff})
+            table['relmaxdiff'].append(relmaxdiff)
         else:
-            results[k].update({'diff': None})
-            table['diff'].append(None)
+            results[k].update({'relmaxdiff': None})
+            table['relmaxdiff'].append(None)
+            print(None)
     df = pd.DataFrame(table)
     df.to_csv('reg_test.csv')

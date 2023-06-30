@@ -33,7 +33,7 @@ def regression_test(js):
                                 commit,
                                 str(config_option),
                                 str(config_optim),
-                                str(nesting),
+                                str(nesting)
                             ]
                             if len(x)
                         ]
@@ -72,7 +72,8 @@ def regression_test(js):
                                             str(n_proc),
                                             str(config_option),
                                             str(config_optim),
-                                            str(nesting)
+                                            str(nesting),
+                                            commit
                                         ]
                                         if len(x)
                                     ]
@@ -80,7 +81,7 @@ def regression_test(js):
                                 case_path = ensure_dir(
                                     osp.abspath(
                                         osp.join(
-                                            run_path, test_name, commit
+                                            run_path, test_name
                                         )
                                     )
                                 )
