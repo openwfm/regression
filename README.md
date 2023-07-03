@@ -7,12 +7,16 @@ This repository contains the regression tests for WRF-SFIRE. The tests ensure th
 To run the regression tests, you need to have the following dependencies installed:
 
 - GNU compilers
-- NETCDF
+- NETCDF and HDF5 (as needed by WRF(
 - Python >= 3.8 with following libraries:
   - f90nml
   - netCDF4 < 2.0
   - NumPy < 2.0
-  - JSON
+ 
+To install the dependences using conda:
+
+    conda env create -f install/regression.yml
+    conda activate regression
 
 ## Usage
 
