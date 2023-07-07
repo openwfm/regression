@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH --job-name=%(test_case)s
+#SBATCH --time=%(wall_time_hrs)02d:00:00 # walltime, abbreviated by -t
+#SBATCH --ntasks=%(np)d   # number of MPI tasks, abbreviated by -n
+
+module purge
+module load gcc8
+module load slurm
+
+mpirun -n 1 ./ideal.exe
+mpirun -n $SLURM_NTASKS ./wrf.exe

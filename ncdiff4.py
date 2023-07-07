@@ -79,9 +79,12 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
     return maxreldif
 
-
-if __name__ == "__main__":
-    reg_tests = json.load(open('reg_tests.json'))
+def validate_reg_tests(reg_tests):
+    """
+    Validate regression tests from json metadata
+    :param js: json metadata with information of the tests to compare
+    :returns: dictionary with 
+    """
     results = {}
     for js in reg_tests:
         wrfout_paths = sorted(glob(osp.join(js['case_path'], 'wrfout*')))
@@ -128,13 +131,14 @@ if __name__ == "__main__":
                         'paths': wrfout_paths
                     }
                 })
+
+def summary_table(results):
     table = {'test_case': [], 'relmaxdiff': []}
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
         print(k)
         table['test_case'].append(k)
         vars = results[k]['vars']
-        status = []
         for c in results[k]['output'].keys():
             table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
@@ -149,4 +153,10 @@ if __name__ == "__main__":
             table['relmaxdiff'].append(None)
             print(None)
     df = pd.DataFrame(table)
-    df.to_csv('reg_test.csv')
+    return df
+
+if __name__ == "__main__":
+    reg_tests = json.load(open('reg_tests.json'))
+    results = validate_reg_tests(reg_tests)
+    table = summary_table(results)
+    table.to_csv('reg_test_results.csv')
