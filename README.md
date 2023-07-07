@@ -43,7 +43,7 @@ To use the tools provided by this library, you need to follow these steps:
 
 4. **Validate the Regression Test**
 
-    To validate the results of the regression test, run the following command:
+    To validate the results of the regression test, first wait until all the jobs finish running, then use the following command:
     ```shell
     python ncdiff4.py
     ```
