@@ -12,6 +12,7 @@ To run the regression tests, you need to have the following dependencies install
   - f90nml
   - netCDF4 < 2.0
   - NumPy < 2.0
+  - Pandas
  
 To install the dependencies using conda:
 
