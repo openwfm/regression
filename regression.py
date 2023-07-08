@@ -18,7 +18,7 @@ def regression_test(js):
         "sub_tmpl_path": osp.abspath(js.get("sub_tmpl_path", "submit/aws.sub")),
         "wall_time_hrs": js.get("wall_time_hrs", 2),
     }
-    run_path = osp.join(test_case["run_path"], "reg_tests")
+    run_path = osp.abspath(osp.join(test_case["run_path"], "reg_tests"))
     build_path = osp.join(test_case["run_path"], "build")
     rebuilds = [test_case["rebuild_ref"], test_case["rebuild_dev"]]
     commits = [test_case["commit_ref"], test_case["commit_dev"]]
@@ -72,17 +72,14 @@ def regression_test(js):
                                             str(n_proc),
                                             str(config_option),
                                             str(config_optim),
-                                            str(nesting),
-                                            commit
+                                            str(nesting)
                                         ]
                                         if len(x)
                                     ]
                                 )
                                 case_path = ensure_dir(
-                                    osp.abspath(
-                                        osp.join(
-                                            run_path, test_name
-                                        )
+                                    osp.join(
+                                        run_path, test_name + '_{}'.format(commit)
                                     )
                                 )
                                 test_case.update(

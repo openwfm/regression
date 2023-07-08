@@ -131,8 +131,14 @@ def validate_reg_tests(reg_tests):
                         'paths': wrfout_paths
                     }
                 })
+    return results
 
 def summary_table(results):
+    """
+    Create summary table with the results.
+    :param results: dictionary with results from the regression test.
+    :returns: pandas dataframe with the summary of the results.
+    """
     table = {'test_case': [], 'relmaxdiff': []}
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
