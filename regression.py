@@ -19,7 +19,7 @@ def regression_test(js):
         "wall_time_hrs": js.get("wall_time_hrs", 2),
     }
     run_path = osp.abspath(osp.join(test_case["run_path"], "reg_tests"))
-    build_path = osp.join(test_case["run_path"], "build")
+    build_path = osp.abspath(osp.join(test_case["run_path"], "build"))
     rebuilds = [test_case["rebuild_ref"], test_case["rebuild_dev"]]
     commits = [test_case["commit_ref"], test_case["commit_dev"]]
     for commit, rebuild in zip(commits, rebuilds):
@@ -44,7 +44,7 @@ def regression_test(js):
                     )
                     test_case.update(
                         {
-                            "clone_dir": osp.abspath(build_dir),
+                            "clone_dir": build_dir,
                             "commit": commit,
                             "config_option": config_option,
                             "config_optim": config_optim,

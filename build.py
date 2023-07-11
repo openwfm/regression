@@ -194,7 +194,7 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
     """
     if osp.exists(run_path):
         shutil.rmtree(run_path)
-    shutil.copytree(test_path, run_path)
+    shutil.copytree(test_path, run_path, ignore_dangling_symlinks=True)
     if len(namelist_input_params):
         nml_path = osp.join(run_path, "namelist.input")
         logging.debug(f"adding options to namelist input {nml_path}")
@@ -241,7 +241,10 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
     input_files = kwargs.get("input_files", {})
     real = kwargs.get("real", False)
     # Copy test case
-    orig_path = osp.join(clone_dir, test_path)
+    if osp.isabs(test_path):
+        orig_path = test_path
+    else:
+        orig_path = osp.join(clone_dir, test_path)
     logging.info(f"cloning test case {case_path} from {orig_path}")
     copy_test(
         orig_path,
