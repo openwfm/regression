@@ -4,18 +4,19 @@ import netCDF4 as nc
 import pandas as pd
 import numpy as np
 import json
+import logging
 
 
-def ncdiff4(file1, file2, vars, do_print=1):
+def ncdiff4(file1, file2, vars):
     """
     Compare two netcdf files
     :param file1: file name
     :param file2: file name
     :param vars: variables to test
-    :param do_print: print if True
     :returns: max relative error
     """
 
+    # Initialize maximum relative differences
     maxreldif = 0.0
 
     # Open netCDF files
@@ -30,14 +31,13 @@ def ncdiff4(file1, file2, vars, do_print=1):
     rows1, cols1 = times1.shape
     rows2, cols2 = times2.shape
     if rows1 != rows2 or cols1 != cols2:
-        print("arrays Times are not the same size")
+        logging.warning("arrays Times are not the same size")
         return np.inf
     for time_index, (time1, time2) in enumerate(zip(times1, times2)):
         ntested = 0
         # Check if the times are equal
         if np.array_equal(time1, time2):
-            if do_print > 2:
-                print(f"Time step {time_index}: {time1.tobytes().decode().strip()}")
+            logging.debug(f"Time step {time_index}: {time1.tobytes().decode().strip()}")
 
             # Compare variables
             for var_name in dataset1.variables.keys():
@@ -47,7 +47,7 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
                 # Check if the variable exists in both files
                 if var_name in dataset2.variables:
-                    #print(var_name)
+                    logging.debug(var_name)
                     var1 = dataset1.variables[var_name][time_index]
                     var2 = dataset2.variables[var_name][time_index]
 
@@ -58,20 +58,17 @@ def ncdiff4(file1, file2, vars, do_print=1):
                         rel_diff_max = np.max(np.abs(var1 - var2)) / max(
                             np.max(np.abs(var1)), np.max(np.abs(var2)), np.finfo(float).eps
                         )
-                        if do_print > 2:
-                            # Print the results
-                            print(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
+                        # Print the results
+                        logging.debug(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
                         maxreldif = max(maxreldif, rel_diff_max)
                     else:
-                        print(f"Variable {var_name} dimensions don't match. Exiting.")
+                        logging.debug(f"Variable {var_name} dimensions don't match. Exiting.")
                         return np.inf
                 else:
-                    if do_print > 1:
-                        print(f"Variable {var_name} not present in both files. Skipping.")
+                    logging.debug(f"Variable {var_name} not present in both files. Skipping.")
 
         else:
-            if do_print > 0:
-                print(f"Time step {time_index} skipped due to different times.")
+            logging.warning(f"Time step {time_index} skipped due to different times.")
 
     # Close datasets
     dataset1.close()
@@ -150,7 +147,7 @@ def summary_table(results):
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
             relmaxdiff = 0.0
             for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
-                relmaxdiff = max(relmaxdiff, ncdiff4(p1, p2, vars, do_print=2))
+                relmaxdiff = max(relmaxdiff, ncdiff4(p1, p2, vars))
             print(relmaxdiff)
             results[k].update({'relmaxdiff': relmaxdiff})
             table['relmaxdiff'].append(relmaxdiff)

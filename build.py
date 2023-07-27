@@ -24,9 +24,9 @@ def ensure_dir(path):
     return path
 
 
-def symlink_unless_exists(link_tgt, link_loc):
+def force_symlink(link_tgt, link_loc):
     """
-    Create a symlink at link_loc pointing to link_tgt unless file already exists.
+    Create a symlink at link_loc pointing to link_tgt and delete if the file already exists.
 
     :param link_tgt: link target
     :param link_loc: link location
@@ -194,7 +194,10 @@ def copy_test(test_path, run_path, namelist_input_params={}, namelist_fire_param
     """
     if osp.exists(run_path):
         shutil.rmtree(run_path)
-    shutil.copytree(test_path, run_path, ignore_dangling_symlinks=True)
+    try:
+        shutil.copytree(test_path, run_path)
+    except:
+        logging.warning('some error while running copytree, normally caused by dangling symlinks')
     if len(namelist_input_params):
         nml_path = osp.join(run_path, "namelist.input")
         logging.debug(f"adding options to namelist input {nml_path}")
@@ -251,16 +254,16 @@ def run_wrf_sub(clone_dir, n_proc="1", wall_time_hrs="2", **kwargs):
         case_path,
         namelist_input_params=namelist_input_params,
         namelist_fire_params=namelist_fire_params,
-        input_files=input_files,
+        input_files=input_files
     )
     # Link executables
     if real:
         logging.info("linking executables real.exe and wrf.exe")
-        symlink_unless_exists(osp.join(clone_dir, "main", "real.exe"), osp.join(case_path, "real.exe"))
+        force_symlink(osp.join(clone_dir, "main", "real.exe"), osp.join(case_path, "real.exe"))
     else:
         logging.info("linking executables ideal.exe and wrf.exe")
-        symlink_unless_exists(osp.join(clone_dir, "main", "ideal.exe"), osp.join(case_path, "ideal.exe"))
-    symlink_unless_exists(osp.join(clone_dir, "main", "wrf.exe"), osp.join(case_path, "wrf.exe"))
+        force_symlink(osp.join(clone_dir, "main", "ideal.exe"), osp.join(case_path, "ideal.exe"))
+    force_symlink(osp.join(clone_dir, "main", "wrf.exe"), osp.join(case_path, "wrf.exe"))
     # Create sub file from template
     logging.info("create sub file and run sbatch job")
     script_tmpl = open(sub_tmpl_path).read()
