@@ -6,6 +6,7 @@ import numpy as np
 import json
 import logging
 
+_metadata = ['test_name', 'case_name', 'config_option', 'config_optim', 'nesting', 'n_cpus']
 
 def ncdiff4(file1, file2, vars):
     """
@@ -91,9 +92,9 @@ def validate_reg_tests(reg_tests):
             or osp.exists(rsl_path) and not 'SUCCESS COMPLETE WRF' in open(rsl_path).read() \
             or not osp.exists(rsl_path) and len(slurm_paths) and not 'SUCCESS COMPLETE WRF' in open(slurm_paths[0]).read() \
             or not len(wrfout_paths):
-                if js['test_name'] not in results.keys():
+                if js['test_id'] not in results.keys():
                     results.update({
-                        js['test_name']: {
+                        js['test_id']: {
                                 'output': {
                                     js['commit']: {
                                         'status': 'failed', 
@@ -103,16 +104,16 @@ def validate_reg_tests(reg_tests):
                         }
                     })
                 else:
-                    results[js['test_name']]['output'].update({
+                    results[js['test_id']]['output'].update({
                         js['commit']: {
                             'status': 'failed', 
                             'paths': None, 
                         }
                     })
         else:
-            if js['test_name'] not in results.keys():
+            if js['test_id'] not in results.keys():
                 results.update({
-                    js['test_name']: {
+                    js['test_id']: {
                         'output': {
                             js['commit']: {
                                 'status': 'success', 
@@ -122,12 +123,14 @@ def validate_reg_tests(reg_tests):
                     }
                 })
             else:
-                results[js['test_name']]['output'].update({
+                results[js['test_id']]['output'].update({
                     js['commit']: {
                         'status': 'success', 
                         'paths': wrfout_paths
                     }
                 })
+        for m in _metadata:
+            results[js['test_id']].update({m: js[m]})
     return results
 
 def summary_table(results):
@@ -136,11 +139,15 @@ def summary_table(results):
     :param results: dictionary with results from the regression test.
     :returns: pandas dataframe with the summary of the results.
     """
-    table = {'test_case': [], 'relmaxdiff': []}
+    table = {'test_id': []}
+    table.update({m: [] for m in _metadata})
+    table.update({'relmaxdiff': []})
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
         print(k)
-        table['test_case'].append(k)
+        table['test_id'].append(k)
+        for m in _metadata:
+            table[m].append(results[k][m])
         vars = results[k]['vars']
         for c in results[k]['output'].keys():
             table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
@@ -162,4 +169,5 @@ if __name__ == "__main__":
     reg_tests = json.load(open('reg_tests.json'))
     results = validate_reg_tests(reg_tests)
     table = summary_table(results)
-    table.to_csv('reg_test_results.csv')
+    table.to_csv('reg_test_results.csv', index=False)
+    print(table)

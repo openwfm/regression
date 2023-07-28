@@ -59,7 +59,7 @@ def regression_test(js):
                         vars = opts.get("vars", [])
                         for n_proc in opts.get("n_cpu", [1]):
                             for config in opts.get("configs", []):
-                                info = config.get("info", "")
+                                info = config.get("info", "").lower().replace(" ", "_")
                                 namelist_input_params = config.get("namelist_input_params", {})
                                 namelist_fire_params = config.get("namelist_fire_params", {})
                                 input_files = config.get("input_files", {})
@@ -68,7 +68,7 @@ def regression_test(js):
                                         x
                                         for x in [
                                             name.lower(), 
-                                            info.lower().replace(" ", "_"), 
+                                            info, 
                                             str(n_proc),
                                             str(config_option),
                                             str(config_optim),
@@ -84,14 +84,16 @@ def regression_test(js):
                                 )
                                 test_case.update(
                                     {
-                                        "vars": vars,
-                                        "n_proc": n_proc,
-                                        "test_name": test_name,
+                                        "test_id": test_name,
+                                        "test_name": name,
+                                        "case_name": info,
+                                        "n_cpus": n_proc,
                                         "test_path": path,
                                         "case_path": case_path,
                                         "namelist_input_params": namelist_input_params,
                                         "namelist_fire_params": namelist_fire_params,
-                                        "input_files": input_files
+                                        "input_files": input_files,
+                                        "vars": vars,
                                     }
                                 )
                                 job_id = run_wrf_sub(**test_case)
