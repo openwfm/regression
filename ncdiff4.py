@@ -4,6 +4,7 @@ import netCDF4 as nc
 import pandas as pd
 import numpy as np
 import json
+import sys
 import logging
 
 _metadata = ['test_name', 'case_name', 'config_option', 'config_optim', 'nesting', 'n_cpus']
@@ -149,8 +150,8 @@ def summary_table(results):
         for m in _metadata:
             table[m].append(results[k][m])
         vars = results[k]['vars']
-        for c in results[k]['output'].keys():
-            table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
+        for run in results[k]['output'].keys():
+            table[run.lower() + '_run'].append(results[k]['output'][run]['status'])
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
             relmaxdiff = 0.0
             for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
@@ -165,9 +166,33 @@ def summary_table(results):
     df = pd.DataFrame(table)
     return df
 
+def test_ncdiff():
+    """
+    Add test for checking differences against the same case.
+    """
+    logging.info('testing ncdiff with two identical cases')
+    reg_tests = json.load(open('reg_tests.json'))
+    results = validate_reg_tests(reg_tests)
+    id = next(iter(results))
+    k_ = next(iter(results[id]['output']))
+    results = {id: results[id]}
+    for k in results[id]['output'].keys():
+        results[id]['output'].update({k: results[id]['output'][k_]})
+    table = summary_table(results)
+    assert table.loc[0, 'relmaxdiff'] == 0
+    
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and '-v' in sys.argv[1:]:
+        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    if len(sys.argv) > 1 and '-t' in sys.argv[1:]:
+        test_ncdiff()
+        
+    logging.info('start using ncdiff to test all regression cases')
     reg_tests = json.load(open('reg_tests.json'))
     results = validate_reg_tests(reg_tests)
     table = summary_table(results)
     table.to_csv('reg_test_results.csv', index=False)
     print(table)
+    print()
