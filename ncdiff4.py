@@ -19,6 +19,7 @@ def ncdiff4(file1, file2, vars):
     """
 
     # Initialize maximum relative differences
+    maxabsdif = 0.0
     maxreldif = 0.0
 
     # Open netCDF files
@@ -56,12 +57,16 @@ def ncdiff4(file1, file2, vars):
                     # Check if the dimensions are equal (ignoring unlimited time dimension)
                     if var1.shape[1:] == var2.shape[1:]:
                         ntested += 1
+                        # Compute absolute differences
+                        abs_diff_max = np.max(np.abs(var1 - var2))
                         # Compute relative differences
-                        rel_diff_max = np.max(np.abs(var1 - var2)) / max(
+                        rel_diff_max = abs_diff_max / max(
                             np.max(np.abs(var1)), np.max(np.abs(var2)), np.finfo(float).eps
                         )
                         # Print the results
+                        logging.debug(f"Variable {var_name} {var1.shape}: absolute difference: {abs_diff_max}")
                         logging.debug(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
+                        maxabsdif = max(maxabsdif, abs_diff_max)
                         maxreldif = max(maxreldif, rel_diff_max)
                     else:
                         logging.debug(f"Variable {var_name} dimensions don't match. Exiting.")
@@ -76,7 +81,7 @@ def ncdiff4(file1, file2, vars):
     dataset1.close()
     dataset2.close()
 
-    return maxreldif
+    return maxabsdif,maxreldif
 
 def validate_reg_tests(reg_tests):
     """
@@ -142,10 +147,10 @@ def summary_table(results):
     """
     table = {'test_id': []}
     table.update({m: [] for m in _metadata})
-    table.update({'relmaxdiff': []})
+    table.update({'absmaxdiff': [], 'relmaxdiff': []})
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
-        print(k)
+        logging.info(k)
         table['test_id'].append(k)
         for m in _metadata:
             table[m].append(results[k][m])
@@ -153,16 +158,28 @@ def summary_table(results):
         for run in results[k]['output'].keys():
             table[run.lower() + '_run'].append(results[k]['output'][run]['status'])
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
+            absmaxdiff = 0.0
             relmaxdiff = 0.0
             for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
-                relmaxdiff = max(relmaxdiff, ncdiff4(p1, p2, vars))
-            print(relmaxdiff)
-            results[k].update({'relmaxdiff': relmaxdiff})
+                absdiff,reldiff = ncdiff4(p1, p2, vars)
+                absmaxdiff = max(absmaxdiff, absdiff)
+                relmaxdiff = max(relmaxdiff, reldiff)
+            logging.info('  absolute max diff = {}'.format(absmaxdiff))
+            logging.info('  relative max diff = {}'.format(relmaxdiff))
+            results[k].update({
+                'absmaxdiff': absmaxdiff,
+                'relmaxdiff': relmaxdiff
+            })
+            table['absmaxdiff'].append(absmaxdiff)
             table['relmaxdiff'].append(relmaxdiff)
         else:
-            results[k].update({'relmaxdiff': None})
+            logging.info('  some run was unsuccessful')
+            results[k].update({
+                'absmaxdiff': None,
+                'relmaxdiff': None
+            })
+            table['absmaxdiff'].append(None)
             table['relmaxdiff'].append(None)
-            print(None)
     df = pd.DataFrame(table)
     return df
 
