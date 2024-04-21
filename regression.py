@@ -1,4 +1,4 @@
-from build import clone, build_wrf, run_wrf_sub, ensure_dir
+from build import clone, retrieve_commit, build_wrf, run_wrf_sub, ensure_dir
 import os.path as osp
 import json
 import sys
@@ -54,6 +54,7 @@ def regression_test(js):
                     if rebuild or not osp.exists(test_case["clone_dir"]):
                         clone(**test_case)
                         build_wrf(**test_case)
+                    test_case.update({"commit_id": retrieve_commit()})
                     for name, opts in js.get("test_cases", {}).items():
                         path = opts.get("path", "")
                         vars = opts.get("vars", [])
