@@ -137,6 +137,16 @@ def compile(build):
 
     return run_command(command, arguments, {})
 
+def retrieve_commit() -> str:
+    """
+    Retrieve commit ID from current repository
+
+    Returns:
+        str: commit ID string
+    """
+    result = run_command("git", ["log"], {})
+    commit_id = result['output'].split('\n')[0].split(' ')[-1]
+    return commit_id
 
 def build_wrf(
     commit, config_optim="", config_option="1", nesting="1", build="em_fire", clone_dir="", **kwargs
@@ -153,7 +163,7 @@ def build_wrf(
 
     logging.info("Building in " + clone_dir)
     os.chdir(clone_dir)
-
+    
     # checking out commit
     checkout(commit)
 
