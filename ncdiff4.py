@@ -4,18 +4,22 @@ import netCDF4 as nc
 import pandas as pd
 import numpy as np
 import json
+import sys
+import logging
 
+_metadata = ['test_name', 'case_name', 'config_option', 'config_optim', 'nesting', 'n_cpus']
 
-def ncdiff4(file1, file2, vars, do_print=1):
+def ncdiff4(file1, file2, vars):
     """
     Compare two netcdf files
     :param file1: file name
     :param file2: file name
     :param vars: variables to test
-    :param do_print: print if True
     :returns: max relative error
     """
 
+    # Initialize maximum relative differences
+    maxabsdif = 0.0
     maxreldif = 0.0
 
     # Open netCDF files
@@ -30,14 +34,13 @@ def ncdiff4(file1, file2, vars, do_print=1):
     rows1, cols1 = times1.shape
     rows2, cols2 = times2.shape
     if rows1 != rows2 or cols1 != cols2:
-        print("arrays Times are not the same size")
+        logging.warning("arrays Times are not the same size")
         return np.inf
     for time_index, (time1, time2) in enumerate(zip(times1, times2)):
         ntested = 0
         # Check if the times are equal
         if np.array_equal(time1, time2):
-            if do_print > 2:
-                print(f"Time step {time_index}: {time1.tobytes().decode().strip()}")
+            logging.debug(f"Time step {time_index}: {time1.tobytes().decode().strip()}")
 
             # Compare variables
             for var_name in dataset1.variables.keys():
@@ -47,37 +50,38 @@ def ncdiff4(file1, file2, vars, do_print=1):
 
                 # Check if the variable exists in both files
                 if var_name in dataset2.variables:
-                    #print(var_name)
+                    logging.debug(var_name)
                     var1 = dataset1.variables[var_name][time_index]
                     var2 = dataset2.variables[var_name][time_index]
 
                     # Check if the dimensions are equal (ignoring unlimited time dimension)
                     if var1.shape[1:] == var2.shape[1:]:
                         ntested += 1
+                        # Compute absolute differences
+                        abs_diff_max = np.max(np.abs(var1 - var2))
                         # Compute relative differences
-                        rel_diff_max = np.max(np.abs(var1 - var2)) / max(
+                        rel_diff_max = abs_diff_max / max(
                             np.max(np.abs(var1)), np.max(np.abs(var2)), np.finfo(float).eps
                         )
-                        if do_print > 2:
-                            # Print the results
-                            print(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
+                        # Print the results
+                        logging.debug(f"Variable {var_name} {var1.shape}: absolute difference: {abs_diff_max}")
+                        logging.debug(f"Variable {var_name} {var1.shape}: relative difference: {rel_diff_max}")
+                        maxabsdif = max(maxabsdif, abs_diff_max)
                         maxreldif = max(maxreldif, rel_diff_max)
                     else:
-                        print(f"Variable {var_name} dimensions don't match. Exiting.")
+                        logging.debug(f"Variable {var_name} dimensions don't match. Exiting.")
                         return np.inf
                 else:
-                    if do_print > 1:
-                        print(f"Variable {var_name} not present in both files. Skipping.")
+                    logging.debug(f"Variable {var_name} not present in both files. Skipping.")
 
         else:
-            if do_print > 0:
-                print(f"Time step {time_index} skipped due to different times.")
+            logging.warning(f"Time step {time_index} skipped due to different times.")
 
     # Close datasets
     dataset1.close()
     dataset2.close()
 
-    return maxreldif
+    return maxabsdif,maxreldif
 
 def validate_reg_tests(reg_tests):
     """
@@ -94,9 +98,9 @@ def validate_reg_tests(reg_tests):
             or osp.exists(rsl_path) and not 'SUCCESS COMPLETE WRF' in open(rsl_path).read() \
             or not osp.exists(rsl_path) and len(slurm_paths) and not 'SUCCESS COMPLETE WRF' in open(slurm_paths[0]).read() \
             or not len(wrfout_paths):
-                if js['test_name'] not in results.keys():
+                if js['test_id'] not in results.keys():
                     results.update({
-                        js['test_name']: {
+                        js['test_id']: {
                                 'output': {
                                     js['commit']: {
                                         'status': 'failed', 
@@ -106,16 +110,16 @@ def validate_reg_tests(reg_tests):
                         }
                     })
                 else:
-                    results[js['test_name']]['output'].update({
+                    results[js['test_id']]['output'].update({
                         js['commit']: {
                             'status': 'failed', 
                             'paths': None, 
                         }
                     })
         else:
-            if js['test_name'] not in results.keys():
+            if js['test_id'] not in results.keys():
                 results.update({
-                    js['test_name']: {
+                    js['test_id']: {
                         'output': {
                             js['commit']: {
                                 'status': 'success', 
@@ -125,12 +129,14 @@ def validate_reg_tests(reg_tests):
                     }
                 })
             else:
-                results[js['test_name']]['output'].update({
+                results[js['test_id']]['output'].update({
                     js['commit']: {
                         'status': 'success', 
                         'paths': wrfout_paths
                     }
                 })
+        for m in _metadata:
+            results[js['test_id']].update({m: js[m]})
     return results
 
 def summary_table(results):
@@ -139,30 +145,71 @@ def summary_table(results):
     :param results: dictionary with results from the regression test.
     :returns: pandas dataframe with the summary of the results.
     """
-    table = {'test_case': [], 'relmaxdiff': []}
+    table = {'test_id': []}
+    table.update({m: [] for m in _metadata})
+    table.update({'absmaxdiff': [], 'relmaxdiff': []})
     table.update({k.lower() + '_run': [] for k in results[next(iter(results))]['output'].keys()})
     for k in results.keys():
-        print(k)
-        table['test_case'].append(k)
+        logging.info(k)
+        table['test_id'].append(k)
+        for m in _metadata:
+            table[m].append(results[k][m])
         vars = results[k]['vars']
-        for c in results[k]['output'].keys():
-            table[c.lower() + '_run'].append(results[k]['output'][c]['status'])
+        for run in results[k]['output'].keys():
+            table[run.lower() + '_run'].append(results[k]['output'][run]['status'])
         if all([v['status'] == 'success' for v in results[k]['output'].values()]):
+            absmaxdiff = 0.0
             relmaxdiff = 0.0
             for p1,p2 in zip(*[v['paths'] for v in results[k]['output'].values()]):
-                relmaxdiff = max(relmaxdiff, ncdiff4(p1, p2, vars, do_print=2))
-            print(relmaxdiff)
-            results[k].update({'relmaxdiff': relmaxdiff})
+                absdiff,reldiff = ncdiff4(p1, p2, vars)
+                absmaxdiff = max(absmaxdiff, absdiff)
+                relmaxdiff = max(relmaxdiff, reldiff)
+            logging.info('  absolute max diff = {}'.format(absmaxdiff))
+            logging.info('  relative max diff = {}'.format(relmaxdiff))
+            results[k].update({
+                'absmaxdiff': absmaxdiff,
+                'relmaxdiff': relmaxdiff
+            })
+            table['absmaxdiff'].append(absmaxdiff)
             table['relmaxdiff'].append(relmaxdiff)
         else:
-            results[k].update({'relmaxdiff': None})
+            logging.info('  some run was unsuccessful')
+            results[k].update({
+                'absmaxdiff': None,
+                'relmaxdiff': None
+            })
+            table['absmaxdiff'].append(None)
             table['relmaxdiff'].append(None)
-            print(None)
     df = pd.DataFrame(table)
     return df
 
+def test_ncdiff():
+    """
+    Add test for checking differences against the same case.
+    """
+    logging.info('testing ncdiff with two identical cases')
+    reg_tests = json.load(open('reg_tests.json'))
+    results = validate_reg_tests(reg_tests)
+    id = next(iter(results))
+    k_ = next(iter(results[id]['output']))
+    results = {id: results[id]}
+    for k in results[id]['output'].keys():
+        results[id]['output'].update({k: results[id]['output'][k_]})
+    table = summary_table(results)
+    assert table.loc[0, 'relmaxdiff'] == 0
+    
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and '-v' in sys.argv[1:]:
+        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    if len(sys.argv) > 1 and '-t' in sys.argv[1:]:
+        test_ncdiff()
+        
+    logging.info('start using ncdiff to test all regression cases')
     reg_tests = json.load(open('reg_tests.json'))
     results = validate_reg_tests(reg_tests)
     table = summary_table(results)
-    table.to_csv('reg_test_results.csv')
+    table.to_csv('reg_test_results.csv', index=False)
+    print(table)
+    print()
