@@ -1,7 +1,7 @@
 #!/bin/bash
 # based on templates/aws_mpi.sh
 #SBATCH --job-name=%(test_case)s
-#SBATCH --partition=math-alderaan
+#SBATCH --partition=math-alderaan-short
 #SBATCH --time=%(wall_time_hrs)02d:00:00   # Max wall-clock time
 #SBATCH --ntasks=%(np)d                    # Total number of MPI processe
 
