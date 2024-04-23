@@ -17,24 +17,27 @@ To run the regression tests, you need to have the following dependencies install
 To install the dependencies using conda:
 
     conda env create -f install/regression.yml
-    conda activate regression
 
 ## Usage
 
 To use the tools provided by this library, you need to follow these steps:
 
-1. **Copy the Configuration Template**
+1. **Activate the conda environment**
+
+   conda activate regression
+
+2. **Copy the Configuration Template**
 
    Copy the `config.json_template` file to `config.json`. This file will be used to configure the regression tests according to your specific needs. You can find the template file in the root directory of the library.
    ```shell
     cp config.json_template config.json
     ```
 
-2. **Edit the Configuration File**
+3. **Edit the Configuration File**
 
    Open the `config.json` file using a text editor and replace the words in **CAPITALS** with the appropriate values for your use case. While replacing other parameters in the file is optional, it is recommended only if you have a good understanding of their purpose and implications.
 
-3. **Run the Regression Test**
+4. **Run the Regression Test**
 
     To run the regression test, run the following command:
     ```shell
@@ -42,7 +45,7 @@ To use the tools provided by this library, you need to follow these steps:
     ```
     The code will create a file `reg_tests.json` describing metadata for the regression tests.
 
-4. **Validate the Regression Test**
+5. **Validate the Regression Test**
 
     To validate the results of the regression test, first wait until all the jobs finish running, then use the following command:
     ```shell
