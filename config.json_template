@@ -10,35 +10,5 @@
     "config_optims": [""],
     "nestings": [1],
     "rebuild_ref": true,
-    "rebuild_dev": true, 
-    "test_cases": {
-        "hill": {
-            "path": "test/em_fire/hill",
-            "n_cpu": [1, 64],
-            "vars": ["U", "V", "W", "T", "P", "FIRE_AREA", "FGRNHFX", "FGRNQFX", "ROS", "LFN"],
-            "configs":
-                [
-                    {
-                        "info": "Rothermel", 
-                        "namelist_fire_params": {
-                            "fuel_scalars": {
-                                "ibeh": 1
-                            }
-                        },
-                        "namelist_input_params": {},
-                        "input_files": {}
-                    },
-                    {
-                        "info": "Balbi", 
-                        "namelist_fire_params": {
-                            "fuel_scalars": {
-                                "ibeh": 2
-                            }
-                        },
-                        "namelist_input_params": {},
-                        "input_files": {}
-                    }
-                ]
-        }
-    }
+    "rebuild_dev": true
 }

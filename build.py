@@ -55,7 +55,8 @@ def run_command(command, arguments, answers, **kwargs):
         cmdlist = command
     else:
         cmdlist = [command] + arguments
-
+        
+    logging.info("running command: {}".format(' '.join(cmdlist)))
     process = subprocess.Popen(
         cmdlist, stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, bufsize=1
     )
@@ -64,7 +65,7 @@ def run_command(command, arguments, answers, **kwargs):
     current_line = ""
     while True:
         output_char = process.stdout.read(1)
-        print(output_char, end="", flush=True)  # Output to console
+        #print(output_char, end="", flush=True)  # Output to console
         current_line += output_char
         process_output += output_char
         rc = process.poll()
@@ -137,15 +138,18 @@ def compile(build):
 
     return run_command(command, arguments, {})
 
-def retrieve_commit() -> str:
+def retrieve_commit(path) -> str:
     """
     Retrieve commit ID from current repository
 
     Returns:
         str: commit ID string
     """
+    cwd = osp.abspath(".")
+    os.chdir(path)
     result = run_command("git", ["log"], {})
     commit_id = result['output'].split('\n')[0].split(' ')[-1]
+    os.chdir(cwd)
     return commit_id
 
 def build_wrf(

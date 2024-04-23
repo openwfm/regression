@@ -54,7 +54,7 @@ def regression_test(js):
                     if rebuild or not osp.exists(test_case["clone_dir"]):
                         clone(**test_case)
                         build_wrf(**test_case)
-                    test_case.update({"commit_id": retrieve_commit()})
+                    test_case.update({"commit_id": retrieve_commit(build_dir)})
                     for name, opts in js.get("test_cases", {}).items():
                         path = opts.get("path", "")
                         vars = opts.get("vars", [])
@@ -102,15 +102,15 @@ def regression_test(js):
                                 test_cases.append(test_case.copy())
     return test_cases
 
-
 # __main__ entry point for testing
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python {} reg_test_json".format(sys.argv[0]))
         sys.exit()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-    cwd = osp.abspath(".")
-    js = json.load(open(sys.argv[1]))
+    cwd = osp.abspath(osp.dirname(sys.argv[0]))
+    js = json.load(open(osp.join(cwd, "config.json")))
+    js["test_cases"] = json.load(open(sys.argv[1]))
     test_cases = regression_test(js)
     os.chdir(cwd)
     json.dump(test_cases, open("reg_tests.json", "w"), indent=4, separators=(",", ": "))
