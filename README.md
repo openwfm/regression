@@ -39,13 +39,15 @@ To use the tools provided by this library, you need to follow these steps:
 
 4. **Run the Regression Test**
 
+   The regression test will clone two versions of WRF-SFIRE as specified in the configuration file. It takes the list of cases to run from the first version, called reference version, which needs to have the file test/em_sfire/regression.json with a description of cases to run. 
+
     To run the regression test, run the following command:
     ```shell
     python regression.py config.json >& regression.log &
     ```
     The code will create a file `reg_tests.json` describing metadata for the regression tests.
 
-5. **Validate the Regression Test**
+6. **Validate the Regression Test**
 
     To validate the results of the regression test, first wait until all the jobs finish running, then use the following command:
     ```shell
